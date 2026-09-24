@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(here, "dist/tweak-panel.js");
 const assets = resolve(here, "../skill/design-tweaker/assets");
+const example = resolve(here, "../examples/plain-html");
 const BUDGET = 30 * 1024;
 
 await build({
@@ -24,6 +25,7 @@ await build({
 mkdirSync(assets, { recursive: true });
 copyFileSync(out, resolve(assets, "tweak-panel.js"));
 copyFileSync(resolve(here, "src/tweak-panel.d.ts"), resolve(assets, "tweak-panel.d.ts"));
+copyFileSync(out, resolve(example, "tweak-panel.js"));
 
 const gz = gzipSync(readFileSync(out)).length;
 const kb = (n) => (n / 1024).toFixed(1) + " KB";

@@ -30,3 +30,5 @@ Decisions made while building v1, including anywhere the implementation departs 
 | 2026-09-24 | §4.1 | Config colour values must be exactly 6-digit hex (`#fff` is rejected). The stale-default check does accept 3-digit hex from the page CSS. | Follows rule 4.1.4 strictly for the config. The page check is lenient so it doesn't cause false alarms. |
 | 2026-09-24 | tooling | TypeScript 5.9, not 7.x. | TS 7 (native port) is new. 5.9 is the stable choice for tsc checks. |
 | 2026-09-24 | §6.8 | A font pair change counts as one change in "N unsaved changes". | Confirmed by the user. |
+| 2026-09-24 | §6.3 | Every time the override `<style>` is written, it moves itself back to the end of `<head>` if something was added after it. | Dev servers such as Vite add `<style>` tags at runtime. A plain `:root` block added after ours would otherwise win on source order. Tailwind's layered `@theme` is unaffected either way. |
+| 2026-09-24 | §3 | `npm run build` also copies `tweak-panel.js` into `examples/plain-html/`. | Keeps the example running the latest panel without a manual copy step. |

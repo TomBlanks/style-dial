@@ -1,9 +1,13 @@
-// Entry point. The UI arrives in M1.4; for now mount only validates the config.
+// Entry point: exposes window.TweakPanel and auto-mounts from an inline #tweak-config.
 import { validateConfig } from "./config/validate";
 import { findStaleDefaults } from "./config/drift";
+import { OverrideWriter, buildOverrideCss } from "./overrides";
+import { Store } from "./state/store";
+import type { Value } from "./state/values";
 
 const PREFIX = "[design-tweaker]";
-let mounted = false;
+
+let mounted: { store: Store; writer: OverrideWriter; stop: () => void } | null = null;
 
 function mount(input: unknown): void {
   if (mounted) {
@@ -15,19 +19,38 @@ function mount(input: unknown): void {
     console.error(`${PREFIX} ${result.error}`);
     return;
   }
-  mounted = true;
-  for (const w of result.warnings) console.warn(`${PREFIX} ${w}`);
+  const { config, warnings } = result;
+  for (const w of warnings) console.warn(`${PREFIX} ${w}`);
   const style = getComputedStyle(document.documentElement);
-  for (const w of findStaleDefaults(result.config, (n) => style.getPropertyValue(n))) {
+  for (const w of findStaleDefaults(config, (n) => style.getPropertyValue(n))) {
     console.warn(`${PREFIX} Config out of date: ${w}`);
   }
+
+  const store = new Store(config);
+  const writer = new OverrideWriter();
+  const stop = store.subscribe(() =>
+    writer.write(buildOverrideCss(config, store.shownValues(), store.getState().defaults)),
+  );
+  mounted = { store, writer, stop };
 }
 
 function unmount(): void {
-  mounted = false;
+  if (!mounted) return;
+  mounted.stop();
+  mounted.writer.remove();
+  mounted = null;
 }
 
 window.TweakPanel = { mount, unmount };
+
+// TEMPORARY (M1.2 only): lets you drive the store from the console until the UI exists in M1.4.
+Object.assign(window.TweakPanel, {
+  debug: {
+    set: (key: string, value: Value) => mounted?.store.set(key, value),
+    values: () => mounted && { ...mounted.store.shownValues() },
+    changes: () => mounted?.store.changes(),
+  },
+});
 
 const inline = document.getElementById("tweak-config");
 if (inline && inline.getAttribute("type") === "application/json") {
