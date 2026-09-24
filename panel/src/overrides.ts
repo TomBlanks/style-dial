@@ -1,9 +1,8 @@
 // Writes overridden tokens into one unlayered <style> element (spec §6.3).
 
 import type { Token, TweakConfig } from "./config/types";
-import { pairValues } from "./fonts";
 import { formatNumber } from "./format";
-import { FONT_KEY, changedKeys, type Value, type Values } from "./state/values";
+import { changedKeys, type Value, type Values } from "./state/values";
 
 export const STYLE_ID = "design-tweaker-overrides";
 
@@ -17,15 +16,8 @@ export function cssValue(token: Token, value: Value): string {
 export function buildOverrideCss(config: TweakConfig, values: Values, defaults: Values): string {
   const lines: string[] = [];
   for (const key of changedKeys(config, values, defaults)) {
-    if (key === FONT_KEY) {
-      const pair = config.fonts?.options.find((p) => p.id === values[FONT_KEY]);
-      if (!pair) continue;
-      const v = pairValues(pair);
-      lines.push(`  --font-heading: ${v.heading};`, `  --font-body: ${v.body};`);
-    } else {
-      const token = config.tokens.find((t) => t.var === key)!;
-      lines.push(`  ${key}: ${cssValue(token, values[key])};`);
-    }
+    const token = config.tokens.find((t) => t.var === key)!;
+    lines.push(`  ${key}: ${cssValue(token, values[key])};`);
   }
   return lines.length ? `:root {\n${lines.join("\n")}\n}` : "";
 }

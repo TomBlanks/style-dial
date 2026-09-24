@@ -5,8 +5,7 @@
 import { clamp, formatNumber, isHex6 } from "../format";
 import {
   FRAMEWORKS, GROUPS, ROLES, UNITS,
-  type ColorToken, type FontControl, type FontPair, type FontSpec,
-  type Framework, type Group, type Role, type Suggestion, type Token,
+  type ColorToken, type Framework, type Group, type Role, type Suggestion, type Token,
   type TweakConfig, type Unit,
 } from "./types";
 
@@ -66,7 +65,7 @@ export function validateConfig(input: unknown): ValidationResult {
     const token = validateToken(t, i, warn);
     if (!token) return;
     if (token.var === "--font-heading" || token.var === "--font-body") {
-      warn(`Token ${token.var} skipped: font variables are controlled by "fonts", not "tokens".`);
+      warn(`Token ${token.var} skipped: fonts are not adjustable in v1.`);
       return;
     }
     if (seen.has(token.var)) {
@@ -77,24 +76,22 @@ export function validateConfig(input: unknown): ValidationResult {
     tokens.push(token);
   });
 
-  const fonts = raw.fonts === undefined ? undefined : validateFonts(raw.fonts, warn);
-  if (raw.fonts === undefined) warn('Config has no "fonts"; the font pair control is hidden.');
+  if (raw.fonts !== undefined) warn('"fonts" is not supported in v1 and is ignored.');
 
   const suggestions: Suggestion[] = [];
   if (raw.suggestions !== undefined && !Array.isArray(raw.suggestions)) {
     warn('"suggestions" should be an array; ignoring it.');
   } else if (Array.isArray(raw.suggestions)) {
     const byVar = new Map(tokens.map((t) => [t.var, t]));
-    const pairIds = new Set(fonts?.options.map((p) => p.id) ?? []);
     raw.suggestions.forEach((s, i) => {
-      const suggestion = validateSuggestion(s, i, byVar, pairIds, warn);
+      const suggestion = validateSuggestion(s, i, byVar, warn);
       if (suggestion) suggestions.push(suggestion);
     });
   }
 
   return {
     ok: true,
-    config: { version: 1, id, framework, tailwind, tokensFile, tokens, fonts, suggestions },
+    config: { version: 1, id, framework, tailwind, tokensFile, tokens, suggestions },
     warnings,
   };
 }
@@ -165,61 +162,10 @@ function validateToken(t: unknown, i: number, warn: (m: string) => void): Token 
   return { ...base, type: "size", unit: t.unit as Unit, ...range };
 }
 
-function validateFontSpec(s: unknown): FontSpec | null {
-  if (!isObj(s) || !isStr(s.family) || !isStr(s.fallback)) return null;
-  if (s.source !== "google" && s.source !== "system") return null;
-  const spec: FontSpec = { family: s.family, fallback: s.fallback, source: s.source };
-  if (s.source === "google" && Array.isArray(s.weights)) {
-    const weights = s.weights.filter((w): w is number => isNum(w) && w >= 1 && w <= 1000);
-    if (weights.length) spec.weights = weights;
-  }
-  return spec;
-}
-
-function validateFonts(f: unknown, warn: (m: string) => void): FontControl | undefined {
-  if (!isObj(f) || !Array.isArray(f.options)) {
-    warn('"fonts" must be an object with an "options" array; the font pair control is hidden.');
-    return undefined;
-  }
-  if (f.headingVar !== "--font-heading" || f.bodyVar !== "--font-body") {
-    warn('"fonts.headingVar" / "fonts.bodyVar" should be "--font-heading" / "--font-body"; using those.');
-  }
-  const options: FontPair[] = [];
-  const ids = new Set<string>();
-  f.options.forEach((p, i) => {
-    if (!isObj(p) || !isStr(p.id) || !isStr(p.name)) {
-      warn(`Font pair #${i + 1} skipped: needs "id" and "name".`);
-      return;
-    }
-    const heading = validateFontSpec(p.heading);
-    const body = validateFontSpec(p.body);
-    if (!heading || !body) {
-      warn(`Font pair "${p.id}" skipped: "heading" and "body" need "family", "fallback" and "source" ("google" or "system").`);
-      return;
-    }
-    if (ids.has(p.id)) {
-      warn(`Font pair "${p.id}" skipped: duplicate id.`);
-      return;
-    }
-    ids.add(p.id);
-    options.push({ id: p.id, name: p.name, heading, body });
-  });
-  if (options.length === 0) {
-    warn("No valid font pairs; the font pair control is hidden.");
-    return undefined;
-  }
-  let def = options[0].id;
-  if (typeof f.default === "string" && ids.has(f.default)) def = f.default;
-  else warn(`"fonts.default" ${JSON.stringify(f.default)} is not one of the font pair ids; using "${def}".`);
-
-  return { headingVar: "--font-heading", bodyVar: "--font-body", default: def, options };
-}
-
 function validateSuggestion(
   s: unknown,
   i: number,
   byVar: Map<string, Token>,
-  pairIds: Set<string>,
   warn: (m: string) => void,
 ): Suggestion | null {
   if (!isObj(s) || !isStr(s.id) || !isStr(s.title)) {
@@ -228,10 +174,7 @@ function validateSuggestion(
   }
   const where = `Suggestion "${s.id}"`;
   const reason = typeof s.reason === "string" ? s.reason : "";
-  if (s.fontPair !== undefined && (typeof s.fontPair !== "string" || !pairIds.has(s.fontPair))) {
-    warn(`${where} skipped: unknown font pair ${JSON.stringify(s.fontPair)}.`);
-    return null;
-  }
+  if (s.fontPair !== undefined) warn(`${where}: "fontPair" is not supported in v1 and is ignored.`);
   const rawChanges = isObj(s.changes) ? s.changes : {};
   const changes: Record<string, number | string> = {};
   for (const [name, value] of Object.entries(rawChanges)) {
@@ -258,15 +201,9 @@ function validateSuggestion(
       changes[name] = clamped;
     }
   }
-  if (Object.keys(changes).length === 0 && s.fontPair === undefined) {
+  if (Object.keys(changes).length === 0) {
     warn(`${where} skipped: it has no changes.`);
     return null;
   }
-  return {
-    id: s.id,
-    title: s.title,
-    reason,
-    changes,
-    ...(s.fontPair !== undefined ? { fontPair: s.fontPair as string } : {}),
-  };
+  return { id: s.id, title: s.title, reason, changes };
 }

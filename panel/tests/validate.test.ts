@@ -39,7 +39,6 @@ describe("validateConfig — valid input", () => {
     expect(r.warnings).toEqual([]);
     expect(r.config.tokens).toHaveLength(9);
     expect(r.config.suggestions).toHaveLength(2);
-    expect(r.config.fonts?.default).toBe("editorial");
   });
   it("accepts a JSON string", () => {
     expect(valid(JSON.stringify(sampleConfig())).config.id).toBe("sample-site");
@@ -102,10 +101,12 @@ describe("validateConfig — non-fatal token problems", () => {
     expect(r.config.tokens[0].role).toBeUndefined();
     expect(r.warnings[0]).toMatch(/unknown role/);
   });
-  it("skips font variables listed as tokens", () => {
+  it("skips font variables listed as tokens (fonts are not adjustable in v1)", () => {
     const c = sampleConfig();
     c.tokens.push({ var: "--font-body", label: "Body font", group: "Typography", type: "color", default: "#000000" });
-    expect(valid(c).config.tokens).toHaveLength(9);
+    const r = valid(c);
+    expect(r.config.tokens).toHaveLength(9);
+    expect(r.warnings[0]).toMatch(/fonts are not adjustable in v1/);
   });
 });
 
@@ -117,10 +118,17 @@ describe("validateConfig — suggestions", () => {
     expect(r.config.suggestions.map((s) => s.id)).toEqual(["warmer"]);
     expect(r.warnings[0]).toMatch(/unknown token --nope/);
   });
-  it("skips a suggestion referencing an unknown font pair", () => {
+  it("ignores a suggestion's fontPair with a warning, keeping its other changes", () => {
     const c = sampleConfig();
-    c.suggestions[1].fontPair = "brutalist";
-    expect(valid(c).config.suggestions.map((s) => s.id)).toEqual(["bigger-hero"]);
+    c.suggestions[1].fontPair = "editorial";
+    const r = valid(c);
+    expect(r.config.suggestions[1]).toEqual({ id: "warmer", title: "Warmer accent", reason: expect.any(String), changes: { "--color-accent": "#b4380a" } });
+    expect(r.warnings[0]).toMatch(/"fontPair" is not supported in v1/);
+  });
+  it("skips a suggestion that only changed fonts", () => {
+    const c = sampleConfig();
+    c.suggestions.push({ id: "type", title: "New type", reason: "x", changes: {}, fontPair: "editorial" });
+    expect(valid(c).config.suggestions).toHaveLength(2);
   });
   it("clamps out-of-range suggestion values and warns", () => {
     const c = sampleConfig();
@@ -136,25 +144,12 @@ describe("validateConfig — suggestions", () => {
   });
 });
 
-describe("validateConfig — fonts", () => {
-  it("falls back to the first pair when the default id is unknown", () => {
+describe("validateConfig — fonts (not in v1)", () => {
+  it("ignores a fonts section with a warning", () => {
     const c = sampleConfig();
-    c.fonts.default = "missing";
+    c.fonts = { headingVar: "--font-heading", bodyVar: "--font-body", default: "x", options: [] };
     const r = valid(c);
-    expect(r.config.fonts?.default).toBe("system");
-    expect(r.warnings[0]).toMatch(/fonts.default/);
-  });
-  it("skips a malformed pair", () => {
-    const c = sampleConfig();
-    c.fonts.options.push({ id: "bad", name: "Bad", heading: { family: "X" }, body: {} });
-    expect(valid(c).config.fonts?.options).toHaveLength(2);
-  });
-  it("hides the font control when fonts are missing", () => {
-    const c = sampleConfig();
-    delete c.fonts;
-    delete c.suggestions[1].fontPair;
-    const r = valid(c);
-    expect(r.config.fonts).toBeUndefined();
-    expect(r.warnings).toHaveLength(1);
+    expect("fonts" in r.config).toBe(false);
+    expect(r.warnings).toEqual(['"fonts" is not supported in v1 and is ignored.']);
   });
 });

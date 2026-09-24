@@ -50,33 +50,11 @@ export interface ColorToken extends BaseToken {
 export type Token = SizeToken | NumberToken | ColorToken;
 export type RangeToken = SizeToken | NumberToken;
 
-export interface FontSpec {
-  family: string;
-  fallback: string;
-  source: "google" | "system";
-  weights?: number[];
-}
-
-export interface FontPair {
-  id: string;
-  name: string;
-  heading: FontSpec;
-  body: FontSpec;
-}
-
-export interface FontControl {
-  headingVar: "--font-heading";
-  bodyVar: "--font-body";
-  default: string;
-  options: FontPair[];
-}
-
 export interface Suggestion {
   id: string;
   title: string;
   reason: string;
   changes: Record<string, number | string>;
-  fontPair?: string;
 }
 
 export interface TweakConfig {
@@ -86,7 +64,5 @@ export interface TweakConfig {
   tailwind: boolean;
   tokensFile: string;
   tokens: Token[];
-  /** Absent when the config has no usable font control. */
-  fonts?: FontControl;
   suggestions: Suggestion[];
 }

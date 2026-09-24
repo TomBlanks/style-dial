@@ -19,8 +19,6 @@ const pageValues: Record<string, string> = {
   "--color-fg": "#1C1B1A",
   "--color-bg": "#faf8f5",
   "--color-accent": "#c2410c",
-  "--font-heading": "'Fraunces', Georgia, serif",
-  "--font-body": '"Inter", system-ui, sans-serif',
 };
 
 describe("findStaleDefaults", () => {
@@ -34,9 +32,5 @@ describe("findStaleDefaults", () => {
     expect(msgs).toHaveLength(4);
     expect(msgs.join("\n")).toMatch(/--text-h1: config default is 3.5rem but the page has 3.75rem/);
     expect(msgs.join("\n")).toMatch(/--text-h2 is in the config but not declared/);
-  });
-  it("reports a font mismatch", () => {
-    const page = { ...pageValues, "--font-heading": "system-ui, sans-serif" };
-    expect(findStaleDefaults(config, (n) => (page as any)[n] ?? "")).toHaveLength(1);
   });
 });

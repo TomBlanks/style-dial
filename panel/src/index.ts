@@ -3,11 +3,11 @@ import { validateConfig } from "./config/validate";
 import { findStaleDefaults } from "./config/drift";
 import { OverrideWriter, buildOverrideCss } from "./overrides";
 import { Store } from "./state/store";
-import type { Value } from "./state/values";
+import { mountError, mountPanel, type PanelHandle } from "./ui/panel";
 
 const PREFIX = "[design-tweaker]";
 
-let mounted: { store: Store; writer: OverrideWriter; stop: () => void } | null = null;
+let mounted: { panel: PanelHandle; writer?: OverrideWriter; stop?: () => void } | null = null;
 
 function mount(input: unknown): void {
   if (mounted) {
@@ -17,6 +17,7 @@ function mount(input: unknown): void {
   const result = validateConfig(input);
   if (!result.ok) {
     console.error(`${PREFIX} ${result.error}`);
+    mounted = { panel: mountError(result.error) };
     return;
   }
   const { config, warnings } = result;
@@ -31,28 +32,23 @@ function mount(input: unknown): void {
   const stop = store.subscribe(() =>
     writer.write(buildOverrideCss(config, store.shownValues(), store.getState().defaults)),
   );
-  mounted = { store, writer, stop };
+  mounted = { panel: mountPanel(store), writer, stop };
 }
 
 function unmount(): void {
   if (!mounted) return;
-  mounted.stop();
-  mounted.writer.remove();
+  mounted.stop?.();
+  mounted.writer?.remove();
+  mounted.panel.destroy();
   mounted = null;
 }
 
 window.TweakPanel = { mount, unmount };
 
-// TEMPORARY (M1.2 only): lets you drive the store from the console until the UI exists in M1.4.
-Object.assign(window.TweakPanel, {
-  debug: {
-    set: (key: string, value: Value) => mounted?.store.set(key, value),
-    values: () => mounted && { ...mounted.store.shownValues() },
-    changes: () => mounted?.store.changes(),
-  },
-});
-
-const inline = document.getElementById("tweak-config");
-if (inline && inline.getAttribute("type") === "application/json") {
-  mount(inline.textContent ?? "");
+function autoMount() {
+  const inline = document.getElementById("tweak-config");
+  if (inline && inline.getAttribute("type") === "application/json") mount(inline.textContent ?? "");
 }
+// The script tag sits at the end of <body>, but be safe if it's loaded earlier.
+if (document.body) autoMount();
+else document.addEventListener("DOMContentLoaded", autoMount, { once: true });

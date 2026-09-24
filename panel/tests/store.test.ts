@@ -1,21 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "../src/state/store";
-import { FONT_KEY, changedKeys, defaultValues } from "../src/state/values";
+import { changedKeys, defaultValues } from "../src/state/values";
 import { validSample } from "./fixtures-config";
 
 describe("defaultValues / changedKeys", () => {
-  it("builds a complete value set including the font pair", () => {
+  it("builds a complete value set", () => {
     const v = defaultValues(validSample());
     expect(v["--text-h1"]).toBe(3.5);
     expect(v["--color-accent"]).toBe("#c2410c");
-    expect(v[FONT_KEY]).toBe("editorial");
-    expect(Object.keys(v)).toHaveLength(10);
+    expect(Object.keys(v)).toHaveLength(9);
   });
-  it("lists changed keys in config order, font pair last, ignoring hex case", () => {
+  it("lists changed keys in config order, ignoring hex case", () => {
     const config = validSample();
     const d = defaultValues(config);
-    const v = { ...d, [FONT_KEY]: "system", "--color-accent": "#C2410C", "--space-section": 112, "--text-h1": 4 };
-    expect(changedKeys(config, v, d)).toEqual(["--text-h1", "--space-section", FONT_KEY]);
+    const v = { ...d, "--color-accent": "#C2410C", "--space-section": 112, "--text-h1": 4 };
+    expect(changedKeys(config, v, d)).toEqual(["--text-h1", "--space-section"]);
   });
 });
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { OverrideWriter, STYLE_ID, buildOverrideCss } from "../src/overrides";
-import { FONT_KEY, defaultValues } from "../src/state/values";
+import { defaultValues } from "../src/state/values";
 import { validSample } from "./fixtures-config";
 
 describe("buildOverrideCss", () => {
@@ -23,15 +23,6 @@ describe("buildOverrideCss", () => {
         "}",
       ].join("\n"),
     );
-  });
-  it("writes both font variables when the pair changes; system pair uses only the fallback", () => {
-    const css = buildOverrideCss(config, { ...d, [FONT_KEY]: "system" }, d);
-    expect(css).toBe(
-      ':root {\n  --font-heading: system-ui, -apple-system, "Segoe UI", sans-serif;\n  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;\n}',
-    );
-    const back = buildOverrideCss(config, d, { ...d, [FONT_KEY]: "system" });
-    expect(back).toContain('--font-heading: "Fraunces", Georgia, serif;');
-    expect(back).toContain('--font-body: "Inter", system-ui, sans-serif;');
   });
 });
 

@@ -44,7 +44,18 @@ export class Store {
 
   /** Keys that differ from the defaults in the active version (empty for Original). */
   changes(): string[] {
-    return changedKeys(this.config, this.shownValues(), this.state.defaults);
+    return this.changesFor(this.shownValues());
+  }
+
+  changesFor(values: Values): string[] {
+    return changedKeys(this.config, values, this.state.defaults);
+  }
+
+  /** Switches between Original and an existing version. */
+  view(id: ViewId): void {
+    if (id === this.state.active) return;
+    if (id !== "original" && !this.state.versions[id]) return;
+    this.update({ active: id });
   }
 
   /** Sets one value in the active version. Ignored while Original is showing. */

@@ -17,18 +17,9 @@ export function sampleConfig(): any {
       { var: "--color-bg", label: "Background", group: "Colour", role: "background", type: "color", default: "#faf8f5" },
       { var: "--color-accent", label: "Accent", group: "Colour", role: "accent", type: "color", default: "#c2410c" },
     ],
-    fonts: {
-      headingVar: "--font-heading",
-      bodyVar: "--font-body",
-      default: "editorial",
-      options: [
-        { id: "system", name: "System", heading: { family: "system-ui", fallback: 'system-ui, -apple-system, "Segoe UI", sans-serif', source: "system" }, body: { family: "system-ui", fallback: 'system-ui, -apple-system, "Segoe UI", sans-serif', source: "system" } },
-        { id: "editorial", name: "Editorial", heading: { family: "Fraunces", fallback: "Georgia, serif", source: "google", weights: [600, 700] }, body: { family: "Inter", fallback: "system-ui, sans-serif", source: "google", weights: [400, 600] } },
-      ],
-    },
     suggestions: [
       { id: "bigger-hero", title: "Let the hero breathe", reason: "The studio name deserves more presence above the fold.", changes: { "--text-h1": 4, "--space-section": 112 } },
-      { id: "warmer", title: "Warmer accent", reason: "A deeper terracotta suits the handmade ceramics.", changes: { "--color-accent": "#b4380a" }, fontPair: "editorial" },
+      { id: "warmer", title: "Warmer accent", reason: "A deeper terracotta suits the handmade ceramics.", changes: { "--color-accent": "#b4380a" } },
     ],
   };
 }

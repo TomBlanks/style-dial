@@ -99,22 +99,10 @@
       { "var": "--color-accent", "label": "Accent", "group": "Colour", "role": "accent", "type": "color", "default": "#c2410c" },
       { "var": "--color-accent-fg", "label": "Text on accent", "group": "Colour", "role": "accent-text", "type": "color", "default": "#ffffff" }
     ],
-    "fonts": {
-      "headingVar": "--font-heading",
-      "bodyVar": "--font-body",
-      "default": "editorial",
-      "options": [
-        { "id": "system", "name": "System", "heading": { "family": "system-ui", "fallback": "system-ui, -apple-system, \"Segoe UI\", sans-serif", "source": "system" }, "body": { "family": "system-ui", "fallback": "system-ui, -apple-system, \"Segoe UI\", sans-serif", "source": "system" } },
-        { "id": "editorial", "name": "Editorial", "heading": { "family": "Fraunces", "fallback": "Georgia, serif", "source": "google", "weights": [600, 700] }, "body": { "family": "Inter", "fallback": "system-ui, sans-serif", "source": "google", "weights": [400, 600] } },
-        { "id": "crafted", "name": "Crafted", "heading": { "family": "Young Serif", "fallback": "Georgia, serif", "source": "google", "weights": [400] }, "body": { "family": "Figtree", "fallback": "system-ui, sans-serif", "source": "google", "weights": [400, 600] } },
-        { "id": "quiet", "name": "Quiet", "heading": { "family": "Cormorant Garamond", "fallback": "Georgia, serif", "source": "google", "weights": [500, 600] }, "body": { "family": "Source Sans 3", "fallback": "system-ui, sans-serif", "source": "google", "weights": [400, 600] } }
-      ]
-    },
     "suggestions": [
       { "id": "hero-presence", "title": "Give the hero more presence", "reason": "The studio's one-line promise can carry a larger headline with extra room above the work.", "changes": { "--text-h1": 4.25, "--space-section": 120 } },
       { "id": "kiln-accent", "title": "Deeper, kiln-fired accent", "reason": "A darker terracotta echoes the iron-red shino glaze on the bud vases.", "changes": { "--color-accent": "#9a3412" } },
-      { "id": "softer-cards", "title": "Rounder, pebble-like cards", "reason": "Softer corners suit hand-thrown forms better than crisp tech-style edges.", "changes": { "--radius": 20, "--space-gap": 28 } },
-      { "id": "crafted-type", "title": "Warmer, crafted type", "reason": "A chunkier serif feels closer to the weight of stoneware than a fine display face.", "fontPair": "crafted", "changes": {} }
+      { "id": "softer-cards", "title": "Rounder, pebble-like cards", "reason": "Softer corners suit hand-thrown forms better than crisp tech-style edges.", "changes": { "--radius": 20, "--space-gap": 28 } }
     ]
   }
   </script>
