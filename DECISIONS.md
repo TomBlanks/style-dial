@@ -66,3 +66,12 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §6.9 | If undo is pressed during an unfinished live edit, the edit is recorded first and then undone, so nothing is lost and redo brings it back. Making a live edit after an undo clears redo. | Standard undo behaviour. |
 | §6.8 | Reset all is disabled when the version has no changes. The inline confirmation focuses **Cancel**, and Escape cancels. After a reset, focus moves to Undo. | Safe default: an accidental Enter doesn't wipe the version, and Undo is the natural next step. |
 | §6.8 | Undo/Redo tooltips show ⌘ on Mac and Ctrl elsewhere. | Correct shortcut on each platform. |
+
+## M2.2 build notes (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §6.10 | Any version can be deleted, including A, as long as at least one version remains. "Version A always exists" is read as "A exists at the start". | The spec also says any tab except the only one has a ✕, and that "a new version takes the first free letter", which only makes sense if A can be deleted. |
+| §6.10 | Deleting the version that's showing switches to the nearest remaining version: the one to its left, or failing that the one to its right. Deleting a version also deletes its history, so re-creating a letter starts with an empty history. | Keeps you on an editable version and avoids surprise undo steps from a deleted version. |
+| §6.10 | **+** when Original is showing creates a copy of the defaults. | Original is what's showing, and the spec says to copy the active view. |
+| §6.10, §6.12 | Keyboard: arrow keys, Home and End move between version tabs. **Delete** or **Backspace** on a focused version tab opens the delete confirmation. The ✕ also shows while the selected tab has keyboard focus. | Makes deleting fully keyboard-operable, since the ✕ is otherwise hover-only. |

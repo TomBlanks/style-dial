@@ -104,10 +104,26 @@ svg { width: 16px; height: 16px; flex: none; display: block; }
 }
 .seg [role="tab"]:hover { color: var(--text); }
 .seg [role="tab"][aria-selected="true"] { background: var(--raised); color: var(--text); box-shadow: 0 0 0 .5px var(--stroke), 0 1px 2px rgb(0 0 0 / .12); }
-/* Version tabs: letter centred in a fixed width; "has changes" dot in the top-right corner. */
-.versions [role="tab"] { position: relative; min-width: 34px; }
-.versions [role="tab"]:first-child { min-width: 0; }
+/* Version tabs: letter centred in a fixed width; "has changes" dot in the top-right corner.
+   Hovering (or focusing) the selected tab hides the dot, moves the letter left and shows the ✕ on the right. */
+.vtab { position: relative; display: flex; }
+.vtab .vtab-btn { position: relative; width: 42px; }
 .dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.vtab-x {
+  position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border: 0; padding: 0;
+  border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; display: none; place-items: center;
+}
+.vtab-x svg { width: 10px; height: 10px; }
+.vtab-x:hover { background: var(--fill-2); color: var(--text); }
+.vtab.deletable:is(:hover, :focus-within) .vtab-x:not([hidden]) { display: grid; }
+.vtab.deletable:is(:hover, :focus-within) .dot { display: none; }
+.vtab.deletable:is(:hover, :focus-within) .vtab-btn { justify-content: flex-start; padding-left: 9px; }
+.add { width: 24px; height: 24px; }
+.add svg { width: 14px; height: 14px; }
+.top.confirm-row { gap: 6px; font-size: 12px; }
+.top .confirm-text span { color: var(--text-2); }
+.btn.danger { background: var(--danger); color: #fff; }
+.btn.danger:hover:not(:disabled) { background: var(--danger); filter: brightness(1.08); }
 
 .tabs { margin: 0 12px 10px; display: grid; grid-template-columns: repeat(3, 1fr); }
 .tabs [role="tab"] { padding: 4px 6px; }

@@ -88,3 +88,78 @@ describe("Store history", () => {
     expect(s.canUndo()).toBe(false);
   });
 });
+
+describe("Store versions", () => {
+  it("a new version copies the active version's current values and becomes active", () => {
+    const s = new Store(validSample());
+    s.set("--text-h1", 4); // live, uncommitted
+    expect(s.createVersion()).toBe("B");
+    expect(s.getState().active).toBe("B");
+    expect(s.shownValues()["--text-h1"]).toBe(4);
+    s.set("--text-h1", 5);
+    expect(s.getState().versions.A!["--text-h1"]).toBe(4); // A unaffected
+  });
+  it("creating from Original copies the defaults", () => {
+    const s = new Store(validSample());
+    s.apply({ "--text-h1": 4 });
+    s.view("original");
+    s.createVersion();
+    expect(s.changes()).toEqual([]);
+  });
+  it("allows at most three versions", () => {
+    const s = new Store(validSample());
+    expect(s.createVersion()).toBe("B");
+    expect(s.createVersion()).toBe("C");
+    expect(s.canCreateVersion()).toBe(false);
+    expect(s.createVersion()).toBeNull();
+    expect(s.versionIds()).toEqual(["A", "B", "C"]);
+  });
+  it("deleting keeps the other letters; a new version takes the first free letter", () => {
+    const s = new Store(validSample());
+    s.createVersion();
+    s.createVersion();
+    s.deleteVersion("B");
+    expect(s.versionIds()).toEqual(["A", "C"]);
+    expect(s.createVersion()).toBe("B");
+    s.deleteVersion("A");
+    expect(s.versionIds()).toEqual(["B", "C"]);
+    expect(s.createVersion()).toBe("A");
+  });
+  it("deleting the active version shows the nearest remaining one", () => {
+    const s = new Store(validSample());
+    s.createVersion(); s.createVersion(); // active C
+    s.deleteVersion("C");
+    expect(s.getState().active).toBe("B");
+    s.view("A");
+    s.deleteVersion("A");
+    expect(s.getState().active).toBe("B");
+  });
+  it("never deletes the last version", () => {
+    const s = new Store(validSample());
+    s.deleteVersion("A");
+    expect(s.versionIds()).toEqual(["A"]);
+  });
+  it("each version has its own history", () => {
+    const s = new Store(validSample());
+    s.apply({ "--text-h1": 4 });            // A: 3.5 → 4
+    s.createVersion();                      // B starts at 4, empty history
+    expect(s.canUndo()).toBe(false);
+    s.apply({ "--text-h1": 5 });            // B: 4 → 5
+    s.view("A");
+    s.undo();                               // undo in A
+    expect(s.shownValues()["--text-h1"]).toBe(3.5);
+    s.view("B");
+    expect(s.shownValues()["--text-h1"]).toBe(5); // B untouched
+    s.undo();
+    expect(s.shownValues()["--text-h1"]).toBe(4);
+    expect(s.canUndo()).toBe(false);
+  });
+  it("a re-created version starts with a fresh history", () => {
+    const s = new Store(validSample());
+    s.createVersion();
+    s.apply({ "--text-h1": 5 });
+    s.deleteVersion("B");
+    s.createVersion();
+    expect(s.canUndo()).toBe(false);
+  });
+});

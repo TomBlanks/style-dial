@@ -1,7 +1,8 @@
 // The panel shell: Shadow DOM host, launcher, top row, tabs, body, footer (spec §6.2, §6.4).
 
-import type { Store, ViewId } from "../state/store";
+import type { Store } from "../state/store";
 import { buildControls } from "./controls";
+import { buildVersionBar } from "./versions";
 import { h, nextId, svg } from "./dom";
 import { ICONS } from "./icons";
 import { CSS } from "./styles";
@@ -101,25 +102,12 @@ export function mountPanel(store: Store): PanelHandle {
   const config = store.config;
   let tab: TabId = "controls";
 
-  // Top row: versions · + · minimise. Only Original and A exist until M2.
-  const versionIds: ViewId[] = ["original", "A"];
-  const dots = new Map<ViewId, HTMLElement>();
-  const versions = tablist<ViewId>(
-    "Versions",
-    "versions",
-    versionIds.map((id) => {
-      if (id === "original") return { id, content: ["Original"] };
-      const dot = h("span", { class: "dot", hidden: true });
-      dots.set(id, dot);
-      return { id, content: [id, dot] };
-    }),
-    (id) => store.view(id),
-  );
+  // Top row: versions · + · minimise.
   const minimise = h("button", {
     type: "button", class: "icon-btn", "aria-label": "Minimise Design Tweaker", "data-tip": "Minimise (⌥⇧T)",
     onclick: () => collapse.set(false, true),
   }, svg(ICONS.minimise));
-  const top = h("div", { class: "top" }, versions.el, h("span", { class: "spacer" }), minimise);
+  const versions = buildVersionBar(store, minimise);
 
   // Section tabs and their panels.
   const checksCount = h("span", { class: "count", hidden: true });
@@ -179,10 +167,12 @@ export function mountPanel(store: Store): PanelHandle {
     else if (restoreFocus) (resetAll.disabled ? undo : resetAll).focus(); // after Reset, Undo is the natural next step
   }
 
-  const win = h("section", { class: "win", "aria-label": "Design Tweaker" }, top, tabs.el, body, footer);
+  const win = h("section", { class: "win", "aria-label": "Design Tweaker" },
+    versions.row, versions.confirmRow, tabs.el, body, footer);
 
   // Undo / redo shortcuts, only while focus is inside the panel. Text fields keep their own undo.
   win.addEventListener("keydown", (e) => {
+    if (versions.shortcut(e)) { e.preventDefault(); return; }
     if (!(e.metaKey || e.ctrlKey) || e.altKey || e.code !== "KeyZ") return;
     const target = e.composedPath()[0] as HTMLElement;
     if (target instanceof HTMLInputElement && target.type === "text") return;
@@ -200,11 +190,7 @@ export function mountPanel(store: Store): PanelHandle {
     const isOriginal = state.active === "original";
     const changes = store.changes().length;
 
-    versions.select(state.active);
-    for (const [id, dot] of dots) {
-      const values = id === "original" ? undefined : state.versions[id as "A"];
-      dot.hidden = !values || store.changesFor(values).length === 0;
-    }
+    versions.render();
 
     tabs.select(tab);
     for (const id of Object.keys(panels) as TabId[]) panels[id].hidden = id !== tab;

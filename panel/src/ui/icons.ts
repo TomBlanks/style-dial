@@ -6,6 +6,7 @@ const stroke = (w: number, d: string, box = 16) =>
 export const ICONS = {
   sliders:
     '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h8M15 5h2M3 10h3M10 10h7M3 15h9M16 15h1"/><circle cx="13" cy="5" r="2"/><circle cx="8" cy="10" r="2"/><circle cx="14" cy="15" r="2"/></svg>',
+  close: stroke(1.4, '<path d="M2 2l6 6M8 2l-6 6"/>', 10),
   minimise: stroke(1.6, '<path d="M4 8h8"/>'),
   plus: stroke(1.6, '<path d="M7 2.5v9M2.5 7h9"/>', 14),
   chevron: '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M3 1.5l4 3.5-4 3.5z"/></svg>',

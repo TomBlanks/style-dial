@@ -1,11 +1,12 @@
 // Holds the panel's state and notifies subscribers on change.
-// Versions and persistence are layered on in M2.2 / M2.3.
+// Persistence is layered on in M2.3.
 
 import type { TweakConfig } from "../config/types";
 import { History } from "./history";
 import { changedKeys, defaultValues, type Value, type Values } from "./values";
 
-export type VersionId = "A" | "B" | "C";
+export const VERSION_IDS = ["A", "B", "C"] as const;
+export type VersionId = (typeof VERSION_IDS)[number];
 export type ViewId = "original" | VersionId;
 
 export interface State {
@@ -51,6 +52,44 @@ export class Store {
 
   changesFor(values: Values): string[] {
     return changedKeys(this.config, values, this.state.defaults);
+  }
+
+  /** Existing versions, in letter order. */
+  versionIds(): VersionId[] {
+    return VERSION_IDS.filter((id) => this.state.versions[id]);
+  }
+
+  canCreateVersion(): boolean {
+    return this.versionIds().length < VERSION_IDS.length;
+  }
+
+  /**
+   * Creates the next version (first free letter) as a copy of what's showing now, and switches to it.
+   * Returns the new id, or null when three versions already exist.
+   */
+  createVersion(): VersionId | null {
+    const id = VERSION_IDS.find((v) => !this.state.versions[v]);
+    if (!id) return null;
+    this.commit();
+    const values = { ...this.shownValues() };
+    this.histories.set(id, new History(values));
+    this.update({ versions: { ...this.state.versions, [id]: values }, active: id });
+    return id;
+  }
+
+  /** Deletes a version (never the last one). If it was showing, the nearest remaining version is shown. */
+  deleteVersion(id: VersionId): void {
+    const ids = this.versionIds();
+    if (!this.state.versions[id] || ids.length <= 1) return;
+    const versions = { ...this.state.versions };
+    delete versions[id];
+    this.histories.delete(id);
+    let active = this.state.active;
+    if (active === id) {
+      const i = ids.indexOf(id);
+      active = ids[i - 1] ?? ids[i + 1];
+    }
+    this.update({ versions, active });
   }
 
   /** Switches between Original and an existing version. Not a history entry. */

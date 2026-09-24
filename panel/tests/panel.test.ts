@@ -205,13 +205,13 @@ describe("footer: undo, redo, reset all", () => {
     expect(btn("Reset all").disabled).toBe(true);
     store.apply({ "--text-h1": 4, "--color-accent": "#000000" });
     btn("Reset all").click();
-    expect($(".confirm-row").hidden).toBe(false);
-    expect($(".confirm-text").textContent).toBe("Reset this version to the original?");
-    $$<HTMLButtonElement>(".confirm-row .btn")[0].click(); // Cancel
+    expect($("footer .confirm-row").hidden).toBe(false);
+    expect($("footer .confirm-text").textContent).toBe("Reset this version to the original?");
+    $$<HTMLButtonElement>("footer .confirm-row .btn")[0].click(); // Cancel
     expect(store.changes()).toHaveLength(2);
-    expect($(".confirm-row").hidden).toBe(true);
+    expect($("footer .confirm-row").hidden).toBe(true);
     btn("Reset all").click();
-    $$<HTMLButtonElement>(".confirm-row .btn")[1].click(); // Reset
+    $$<HTMLButtonElement>("footer .confirm-row .btn")[1].click(); // Reset
     expect(store.changes()).toHaveLength(0);
     btn("Undo").click();
     expect(store.changes()).toHaveLength(2);
@@ -219,8 +219,8 @@ describe("footer: undo, redo, reset all", () => {
   it("Escape cancels the reset confirmation", () => {
     store.apply({ "--text-h1": 4 });
     btn("Reset all").click();
-    $(".confirm-row").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    expect($(".confirm-row").hidden).toBe(true);
+    $("footer .confirm-row").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect($("footer .confirm-row").hidden).toBe(true);
     expect(store.changes()).toHaveLength(1);
   });
   it("per-token reset is one undoable entry", () => {
@@ -229,5 +229,72 @@ describe("footer: undo, redo, reset all", () => {
     expect(store.shownValues()["--text-h1"]).toBe(3.5);
     btn("Undo").click();
     expect(store.shownValues()["--text-h1"]).toBe(5);
+  });
+});
+
+describe("versions bar", () => {
+  const vtabs = () => $$<HTMLButtonElement>('.versions [role="tab"]');
+  const add = () => $<HTMLButtonElement>('[aria-label="Try a new version"]');
+  const alt = (digit: number) =>
+    $(".win").dispatchEvent(new KeyboardEvent("keydown", { code: `Digit${digit}`, altKey: true, shiftKey: true, bubbles: true }));
+
+  it("+ creates B then C, switching to each, and hides at three", () => {
+    add().click();
+    expect(vtabs().map((t) => t.textContent)).toEqual(["Original", "A", "B"]);
+    expect($('.versions [aria-selected="true"]').textContent).toBe("B");
+    add().click();
+    expect(vtabs()).toHaveLength(4);
+    expect(add().hidden).toBe(true);
+  });
+  it("no ✕ while there's only one version; ✕ only on the selected tab otherwise", () => {
+    expect($$(".vtab-x").filter((x) => !x.hidden)).toHaveLength(0);
+    add().click();
+    const visible = $$(".vtab-x").filter((x) => !x.hidden);
+    expect(visible.map((x) => x.getAttribute("aria-label"))).toEqual(["Delete Version B"]);
+  });
+  it("delete asks first, showing the change count; Cancel keeps it; Delete removes it", () => {
+    add().click();
+    store.apply({ "--text-h1": 5, "--color-accent": "#000000" });
+    $<HTMLButtonElement>('[aria-label="Delete Version B"]').click();
+    const confirm = $(".top.confirm-row");
+    expect(confirm.hidden).toBe(false);
+    expect(confirm.textContent).toContain("Delete Version B? Its 2 changes will be lost.");
+    confirm.querySelector<HTMLButtonElement>(".btn:not(.danger)")!.click();
+    expect(store.versionIds()).toEqual(["A", "B"]);
+    $<HTMLButtonElement>('[aria-label="Delete Version B"]').click();
+    $<HTMLButtonElement>(".btn.danger").click();
+    expect(store.versionIds()).toEqual(["A"]);
+    expect($(".top.confirm-row").hidden).toBe(true);
+  });
+  it("Delete key on the selected tab asks to delete; Escape cancels", () => {
+    add().click();
+    const b = vtabs()[2];
+    b.focus();
+    b.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true }));
+    expect($(".top.confirm-row").textContent).toContain("It has no changes.");
+    $(".top.confirm-row").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect($(".top.confirm-row").hidden).toBe(true);
+    expect(store.versionIds()).toEqual(["A", "B"]);
+  });
+  it("Alt+Shift+0–3 switch versions; missing versions are ignored", () => {
+    add().click();
+    alt(0);
+    expect(store.getState().active).toBe("original");
+    alt(1);
+    expect(store.getState().active).toBe("A");
+    alt(3);
+    expect(store.getState().active).toBe("A");
+    alt(2);
+    expect(store.getState().active).toBe("B");
+  });
+  it("controls, dots, badge and copy label follow the active version", () => {
+    store.apply({ "--text-h1": 5 });
+    add().click();
+    store.apply({ "--color-accent": "#000000" });
+    expect($(".copy").textContent).toBe("Copy 2 changes");
+    store.view("A");
+    expect($(".copy").textContent).toBe("Copy 1 change");
+    expect($$<HTMLInputElement>(".num input")[1].value).toBe("5");
+    expect($$(".dot").filter((d) => !d.hidden)).toHaveLength(2);
   });
 });
