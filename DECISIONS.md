@@ -42,7 +42,7 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §6.4 | The panel is a fixed height of `min(52vh, 450px)` and doesn't change height when switching tabs. It's full width on viewports under 480px. | A steadier layout. The user asked for about 75% of the first mockup's 70vh. |
 | §6.4, §6.10 | There's no title row. The top row holds the version tabs, a **+** button and the minimise button. The panel's accessible name is still "Design Tweaker". | Saves a row and reduces clutter. |
 | §6.10 | "Try a new version" is a **+** icon button. A "Try a new version" tooltip appears above it on hover or keyboard focus, and it's also the button's accessible name. | Less visual weight. The user asked for this. |
-| §6.10 | Version tabs show a blue dot when the version has changes. The ✕ delete control shows only while hovering over the *selected* version tab, in the dot's place. Deleting always asks first ("Delete Version B? Its 3 changes will be lost."), with Cancel focused and Delete in red. | Tiny tabs made the ✕ easy to hit by accident. |
+| §6.10 | Version tab letters are centred in a fixed-width tab. A version with changes shows a blue dot in the tab's top-right corner. Hovering over the *selected* tab hides the dot, moves the letter left and shows the ✕ on the right; the tab width doesn't change. Deleting always asks first ("Delete Version B? Its 3 changes will be lost."), with Cancel focused and Delete in red. | Balanced tabs with no layout jumps (the user asked for this). Tiny tabs made the ✕ easy to hit by accident. |
 | §6.8 | Footer: undo, redo and a Reset all icon on the left, with **Copy N changes** on the right. There's no separate "Version B · N unsaved changes" line. Reset all has its own boxed-arrow icon, different from the per-token reset arrow. | Less text. The count lives in the button. |
 | §6.5 | A changed value shows a small blue dot after its label, and the per-token reset arrow appears. | Scannable at a glance. |
 | §6.10 | Original view replaces the footer with "Showing the original design. Pick a version to edit." Checks show without Fix buttons. The Suggestions tab shows "Pick a version to preview them" instead of the cards. | Original is a read-only baseline, so it shouldn't offer actions or show "Applied" states. |
@@ -57,3 +57,12 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §6.5 | A typed number is clamped to [min, max] on blur but not snapped to `step`, so typing `1.07` keeps `1.07`. Sliders still move in steps. | Typing is for exact values. |
 | §6.5 | The hex field also accepts 3-digit hex and hex without a `#`, e.g. `abc` → `#aabbcc`. The stored value is always 6-digit lowercase. Escape cancels typing. | Quicker to type. Rule 4.1.4 is still met because stored and exported values are 6-digit. |
 | §6.5 | In Original view the colour swatches stay at full opacity while disabled. | Faded swatches misrepresent the original colours. |
+
+## M2.1 build notes (2026-09-24)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §6.9 | ⌘/Ctrl+Z and ⌘/Ctrl+⇧Z act on the panel's history when focus is inside the panel, **except** in the number and hex text fields. There they keep the browser's normal text undo. | Taking over undo while someone is typing would be surprising. |
+| §6.9 | If undo is pressed during an unfinished live edit, the edit is recorded first and then undone, so nothing is lost and redo brings it back. Making a live edit after an undo clears redo. | Standard undo behaviour. |
+| §6.8 | Reset all is disabled when the version has no changes. The inline confirmation focuses **Cancel**, and Escape cancels. After a reset, focus moves to Undo. | Safe default: an accidental Enter doesn't wipe the version, and Undo is the natural next step. |
+| §6.8 | Undo/Redo tooltips show ⌘ on Mac and Ctrl elsewhere. | Correct shortcut on each platform. |

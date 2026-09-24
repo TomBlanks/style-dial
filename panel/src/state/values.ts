@@ -25,3 +25,10 @@ export function sameValue(a: Value | undefined, b: Value | undefined): boolean {
 export function tokenByVar(config: TweakConfig, name: string): Token | undefined {
   return config.tokens.find((t) => t.var === name);
 }
+
+/** True when both sets have the same keys with the same values. */
+export function sameValues(a: Values, b: Values): boolean {
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((k) => sameValue(a[k], b[k]));
+}

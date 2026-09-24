@@ -111,7 +111,7 @@ export function mountPanel(store: Store): PanelHandle {
       if (id === "original") return { id, content: ["Original"] };
       const dot = h("span", { class: "dot", hidden: true });
       dots.set(id, dot);
-      return { id, content: [id, h("span", { class: "mark" }, dot)] };
+      return { id, content: [id, dot] };
     }),
     (id) => store.view(id),
   );
@@ -135,7 +135,7 @@ export function mountPanel(store: Store): PanelHandle {
   );
   const controls = buildControls(config.tokens, {
     set: (name, value) => store.set(name, value),
-    commit: () => {},
+    commit: () => store.commit(),
   });
   const panels: Record<TabId, HTMLElement> = {
     controls: controls.el,
@@ -153,17 +153,43 @@ export function mountPanel(store: Store): PanelHandle {
   }
   const body = h("div", { class: "body" }, ...Object.values(panels));
 
-  // Footer. Undo/redo/reset-all and copying are wired up in M2.
-  const undo = h("button", { type: "button", class: "icon-btn", "aria-label": "Undo", "data-tip": "Undo (⌘Z)", "data-tip-pos": "start", disabled: true }, svg(ICONS.undo));
-  const redo = h("button", { type: "button", class: "icon-btn", "aria-label": "Redo", "data-tip": "Redo (⌘⇧Z)", disabled: true }, svg(ICONS.redo));
-  const resetAll = h("button", { type: "button", class: "icon-btn", "aria-label": "Reset all", "data-tip": "Reset all", disabled: true }, svg(ICONS.resetAll));
+  // Footer. Copying is wired up in M2.3.
+  const mod = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl+";
+  const undo = h("button", { type: "button", class: "icon-btn", "aria-label": "Undo", "data-tip": `Undo (${mod}Z)`, "data-tip-pos": "start", onclick: () => store.undo() }, svg(ICONS.undo));
+  const redo = h("button", { type: "button", class: "icon-btn", "aria-label": "Redo", "data-tip": `Redo (${mod}${mod === "⌘" ? "⇧" : "Shift+"}Z)`, onclick: () => store.redo() }, svg(ICONS.redo));
+  const resetAll = h("button", { type: "button", class: "icon-btn", "aria-label": "Reset all", "data-tip": "Reset all", onclick: () => confirmReset(true) }, svg(ICONS.resetAll));
   const copy = h("button", { type: "button", class: "btn primary copy", disabled: true });
   const actionsRow = h("div", { class: "footer-row" },
     undo, redo, resetAll, h("span", { class: "spacer" }), copy);
+  const cancelReset = h("button", { type: "button", class: "btn", text: "Cancel", onclick: () => confirmReset(false, true) });
+  const confirmRow = h("div", { class: "footer-row confirm-row", hidden: true, role: "group", "aria-label": "Confirm reset" },
+    h("span", { class: "confirm-text", text: "Reset this version to the original?" }),
+    cancelReset,
+    h("button", { type: "button", class: "btn primary", text: "Reset", onclick: () => { store.resetAll(); confirmReset(false, true); } }),
+  );
+  confirmRow.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); confirmReset(false, true); } });
   const originalNote = h("div", { class: "note", hidden: true }, svg(ICONS.info), "Showing the original design. Pick a version to edit.");
-  const footer = h("footer", { class: "footer" }, actionsRow, originalNote);
+  const footer = h("footer", { class: "footer" }, actionsRow, confirmRow, originalNote);
+
+  let confirming = false;
+  function confirmReset(on: boolean, restoreFocus = false) {
+    confirming = on;
+    render();
+    if (on) cancelReset.focus();
+    else if (restoreFocus) (resetAll.disabled ? undo : resetAll).focus(); // after Reset, Undo is the natural next step
+  }
 
   const win = h("section", { class: "win", "aria-label": "Design Tweaker" }, top, tabs.el, body, footer);
+
+  // Undo / redo shortcuts, only while focus is inside the panel. Text fields keep their own undo.
+  win.addEventListener("keydown", (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.altKey || e.code !== "KeyZ") return;
+    const target = e.composedPath()[0] as HTMLElement;
+    if (target instanceof HTMLInputElement && target.type === "text") return;
+    e.preventDefault();
+    if (e.shiftKey) store.redo();
+    else store.undo();
+  });
   const launcher = launcherButton(() => collapse.set(true, true));
   root.append(launcher.button, win);
   const collapse = wireCollapse(launcher.button, win, () => minimise);
@@ -184,8 +210,13 @@ export function mountPanel(store: Store): PanelHandle {
     for (const id of Object.keys(panels) as TabId[]) panels[id].hidden = id !== tab;
     controls.update(store.shownValues(), state.defaults, isOriginal);
 
-    actionsRow.hidden = isOriginal;
+    if (isOriginal || changes === 0) confirming = false;
+    actionsRow.hidden = isOriginal || confirming;
+    confirmRow.hidden = isOriginal || !confirming;
     originalNote.hidden = !isOriginal;
+    undo.disabled = !store.canUndo();
+    redo.disabled = !store.canRedo();
+    resetAll.disabled = changes === 0;
     copy.textContent = changes === 0 ? "Copy changes" : `Copy ${changes} change${changes === 1 ? "" : "s"}`;
 
     launcher.badge.hidden = changes === 0;

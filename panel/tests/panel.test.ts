@@ -165,3 +165,69 @@ describe("fatal config", () => {
     warn.mockRestore();
   });
 });
+
+describe("footer: undo, redo, reset all", () => {
+  const btn = (label: string) => $<HTMLButtonElement>(`[aria-label="${label}"]`);
+
+  it("undo/redo buttons follow history", () => {
+    expect(btn("Undo").disabled).toBe(true);
+    expect(btn("Redo").disabled).toBe(true);
+    const slider = $$<HTMLInputElement>('input[type="range"]')[1];
+    slider.value = "4";
+    slider.dispatchEvent(new Event("input"));
+    slider.value = "4.5";
+    slider.dispatchEvent(new Event("input"));
+    slider.dispatchEvent(new Event("change")); // pointer release
+    expect(btn("Undo").disabled).toBe(false);
+    btn("Undo").click();
+    expect(store.shownValues()["--text-h1"]).toBe(3.5);
+    expect(btn("Redo").disabled).toBe(false);
+    btn("Redo").click();
+    expect(store.shownValues()["--text-h1"]).toBe(4.5);
+  });
+  it("Cmd/Ctrl+Z works when focus is in the panel but not inside a text field", () => {
+    store.apply({ "--text-h1": 4 });
+    const slider = $$<HTMLInputElement>('input[type="range"]')[0];
+    slider.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", metaKey: true, bubbles: true, composed: true }));
+    expect(store.shownValues()["--text-h1"]).toBe(3.5);
+    slider.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", ctrlKey: true, shiftKey: true, bubbles: true, composed: true }));
+    expect(store.shownValues()["--text-h1"]).toBe(4);
+    const hex = $<HTMLInputElement>(".hex");
+    hex.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", metaKey: true, bubbles: true, composed: true }));
+    expect(store.shownValues()["--text-h1"]).toBe(4);
+  });
+  it("shortcuts outside the panel do nothing", () => {
+    store.apply({ "--text-h1": 4 });
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", metaKey: true, bubbles: true }));
+    expect(store.shownValues()["--text-h1"]).toBe(4);
+  });
+  it("Reset all asks first; Cancel keeps changes, Reset clears them as one undoable step", () => {
+    expect(btn("Reset all").disabled).toBe(true);
+    store.apply({ "--text-h1": 4, "--color-accent": "#000000" });
+    btn("Reset all").click();
+    expect($(".confirm-row").hidden).toBe(false);
+    expect($(".confirm-text").textContent).toBe("Reset this version to the original?");
+    $$<HTMLButtonElement>(".confirm-row .btn")[0].click(); // Cancel
+    expect(store.changes()).toHaveLength(2);
+    expect($(".confirm-row").hidden).toBe(true);
+    btn("Reset all").click();
+    $$<HTMLButtonElement>(".confirm-row .btn")[1].click(); // Reset
+    expect(store.changes()).toHaveLength(0);
+    btn("Undo").click();
+    expect(store.changes()).toHaveLength(2);
+  });
+  it("Escape cancels the reset confirmation", () => {
+    store.apply({ "--text-h1": 4 });
+    btn("Reset all").click();
+    $(".confirm-row").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect($(".confirm-row").hidden).toBe(true);
+    expect(store.changes()).toHaveLength(1);
+  });
+  it("per-token reset is one undoable entry", () => {
+    store.apply({ "--text-h1": 5 });
+    $$(".ctl")[1].querySelector<HTMLButtonElement>(".reset")!.click();
+    expect(store.shownValues()["--text-h1"]).toBe(3.5);
+    btn("Undo").click();
+    expect(store.shownValues()["--text-h1"]).toBe(5);
+  });
+});

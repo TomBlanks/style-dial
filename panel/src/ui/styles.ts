@@ -104,8 +104,10 @@ svg { width: 16px; height: 16px; flex: none; display: block; }
 }
 .seg [role="tab"]:hover { color: var(--text); }
 .seg [role="tab"][aria-selected="true"] { background: var(--raised); color: var(--text); box-shadow: 0 0 0 .5px var(--stroke), 0 1px 2px rgb(0 0 0 / .12); }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
-.mark { display: inline-grid; width: 14px; height: 14px; margin-right: -4px; place-items: center; }
+/* Version tabs: letter centred in a fixed width; "has changes" dot in the top-right corner. */
+.versions [role="tab"] { position: relative; min-width: 34px; }
+.versions [role="tab"]:first-child { min-width: 0; }
+.dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 
 .tabs { margin: 0 12px 10px; display: grid; grid-template-columns: repeat(3, 1fr); }
 .tabs [role="tab"] { padding: 4px 6px; }
@@ -187,6 +189,8 @@ input:disabled { opacity: .45; cursor: default; }
 
 .footer { border-top: .5px solid var(--sep); padding: 8px 10px; min-height: 46px; display: flex; align-items: center; gap: 2px; }
 .footer-row { display: flex; align-items: center; gap: 2px; flex: 1; }
+.confirm-row { gap: 6px; font-size: 12px; }
+.confirm-text { flex: 1; line-height: 1.3; padding-left: 4px; }
 .copy { height: 28px; padding: 0 14px; font-size: 12.5px; }
 .note { display: flex; gap: 8px; align-items: center; color: var(--text-2); font-size: 12px; padding: 0 4px; flex: 1; }
 
