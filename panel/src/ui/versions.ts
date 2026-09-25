@@ -110,12 +110,12 @@ export function buildVersionBar(store: Store, trailing: HTMLElement) {
   return {
     row,
     confirmRow,
-    /** Switches with Alt+Shift+0–3 (focus inside the panel). */
+    /** Switches with Alt+Shift+1 (Original), 2 (A), 3 (B), 4 (C) while focus is inside the panel. */
     shortcut(e: KeyboardEvent): boolean {
       if (!e.altKey || !e.shiftKey || e.metaKey || e.ctrlKey) return false;
-      const m = /^Digit([0-3])$/.exec(e.code);
+      const m = /^Digit([1-4])$/.exec(e.code);
       if (!m) return false;
-      const target: ViewId = m[1] === "0" ? "original" : (["A", "B", "C"] as const)[Number(m[1]) - 1];
+      const target = (["original", "A", "B", "C"] as const)[Number(m[1]) - 1] as ViewId;
       if (target !== "original" && !store.getState().versions[target]) return false;
       store.view(target);
       focusTab(target);

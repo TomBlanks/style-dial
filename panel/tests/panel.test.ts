@@ -276,15 +276,17 @@ describe("versions bar", () => {
     expect($(".top.confirm-row").hidden).toBe(true);
     expect(store.versionIds()).toEqual(["A", "B"]);
   });
-  it("Alt+Shift+0–3 switch versions; missing versions are ignored", () => {
+  it("Alt+Shift+1 = Original, 2 = A, 3 = B, 4 = C; missing versions and 0 are ignored", () => {
     add().click();
-    alt(0);
-    expect(store.getState().active).toBe("original");
     alt(1);
+    expect(store.getState().active).toBe("original");
+    alt(2);
+    expect(store.getState().active).toBe("A");
+    alt(4);
+    expect(store.getState().active).toBe("A"); // no C yet
+    alt(0);
     expect(store.getState().active).toBe("A");
     alt(3);
-    expect(store.getState().active).toBe("A");
-    alt(2);
     expect(store.getState().active).toBe("B");
   });
   it("controls, dots, badge and copy label follow the active version", () => {
