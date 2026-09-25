@@ -107,3 +107,13 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §7 C8 | The fix is `1` for rem body text and `16` for px body text. All fix values are clamped into the token's range. | The contract allows either unit. A fix must never produce an out-of-range value. |
 | §7 | Checks run straight away when the panel mounts, then 100ms after each change. The Checks badge counts warnings only and is hidden at 0. | Results are there as soon as you open the tab. |
 | §7 | Contrast ratios in messages are shown to 1 decimal place, e.g. "2.4:1". | Matches the spec's example message. |
+
+## M4 build notes (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §6.7 | A preview is a separate layer in the store. It's included in the page's override CSS only; it isn't part of the version's values, the change count, history, saving, checks or the copied text. **Any** other store change ends it: an edit, a Fix, undo/redo, reset, or switching or creating a version. Switching tabs and Escape end it too. Minimising the panel doesn't, so you can see the preview unobstructed. | "Clicking another control … ends the preview" (§6.7), made precise. |
+| §6.7 | Un-applying (clicking ✓ Applied) restores the values from just before Apply, as one history entry. After a reload those aren't known, so it falls back to the original design's values for those tokens. | Pre-Apply values are kept in memory only, like history. |
+| §6.7 | Which applied suggestions were copied is remembered per version, in memory only. A copied card comes back if it stops being applied (undo, manual edit, un-apply). | Matches the agreed rule that nothing is final until it's copied, and nothing is lost by accident. |
+| §6.7 | Empty states: "No suggestions for this design." when the config has none; "No suggestions left for this version." when all were applied and copied; in Original, "Suggestions are tried on a version. Pick a version to preview them." | Clear wording for each case. |
+| §6.7 | The card's change summary shows the changed tokens' labels as small chips, e.g. "Heading 1", "Section spacing". This replaces a comma-separated line. | Matches the approved mockup. |

@@ -205,6 +205,22 @@ input:disabled { opacity: .45; cursor: default; }
 .check .ic { margin-top: 1px; display: block; }
 .check.warning .ic { color: var(--warn); }
 .check.info .ic { color: var(--info); }
+.sug {
+  padding: 10px 12px; border-radius: 9px; background: var(--control); box-shadow: 0 0 0 .5px var(--stroke); display: grid; gap: 4px;
+}
+.sug h3 { margin: 0; font-size: 13px; font-weight: 600; }
+.sug p { margin: 0; color: var(--text-2); }
+.sug.previewing { box-shadow: 0 0 0 2px var(--accent); }
+.what { font-size: 11.5px; color: var(--text-2); display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.chip { background: var(--fill); border-radius: 4px; padding: 1px 6px; }
+.sug-actions { display: flex; margin-top: 6px; }
+.sug-actions .actions { display: flex; gap: 6px; }
+.applied-tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px 0 4px; margin-left: -4px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--accent); font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.applied-tag svg { width: 14px; height: 14px; }
+.applied-tag:hover { background: var(--fill-2); }
 .btn {
   border: 0; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 500; cursor: pointer;
   background: var(--fill-2); height: 24px; white-space: nowrap;

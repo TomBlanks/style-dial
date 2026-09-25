@@ -163,3 +163,33 @@ describe("Store versions", () => {
     expect(s.canUndo()).toBe(false);
   });
 });
+
+describe("Store preview", () => {
+  it("shows on the page only: not in values, changes, history or committed versions", () => {
+    const s = new Store(validSample());
+    s.setPreview({ id: "x", changes: { "--text-h1": 5 } });
+    expect(s.pageValues()["--text-h1"]).toBe(5);
+    expect(s.shownValues()["--text-h1"]).toBe(3.5);
+    expect(s.changes()).toEqual([]);
+    expect(s.canUndo()).toBe(false);
+    expect(s.committedVersions().A!["--text-h1"]).toBe(3.5);
+  });
+  it("any edit, undo or version switch ends it", () => {
+    const s = new Store(validSample());
+    const p = { id: "x", changes: { "--text-h1": 5 } };
+    s.setPreview(p); s.set("--measure", 60);
+    expect(s.getState().preview).toBeNull();
+    s.commit(); s.setPreview(p); s.undo();
+    expect(s.getState().preview).toBeNull();
+    s.setPreview(p); s.createVersion();
+    expect(s.getState().preview).toBeNull();
+    s.setPreview(p); s.view("A");
+    expect(s.getState().preview).toBeNull();
+  });
+  it("can't preview on Original", () => {
+    const s = new Store(validSample());
+    s.view("original");
+    s.setPreview({ id: "x", changes: { "--text-h1": 5 } });
+    expect(s.getState().preview).toBeNull();
+  });
+});

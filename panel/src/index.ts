@@ -37,7 +37,7 @@ function mount(input: unknown): void {
     saver.schedule({ baseDefaults: store.getState().defaults, versions: store.committedVersions(), ui: { ...ui, active: store.getState().active } });
 
   const writer = new OverrideWriter();
-  const applyOverrides = () => writer.write(buildOverrideCss(config, store.shownValues(), store.getState().defaults));
+  const applyOverrides = () => writer.write(buildOverrideCss(config, store.pageValues(), store.getState().defaults));
   const stopOverrides = store.subscribe(applyOverrides);
   const stopPersist = store.subscribe(persist);
   applyOverrides();

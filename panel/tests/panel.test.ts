@@ -342,3 +342,91 @@ describe("Checks tab", () => {
     vi.useRealTimers();
   });
 });
+
+describe("Suggestions tab", () => {
+  // Sample suggestions: "bigger-hero" (--text-h1 4, --space-section 112) and "warmer" (--color-accent #b4380a)
+  const open = () => $$<HTMLButtonElement>('.tabs [role="tab"]')[2].click();
+  const cardEl = (id: string) => $(`.sug[data-id="${id}"]`);
+  const button = (id: string, text: string) =>
+    [...cardEl(id).querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent === text)!;
+
+  it("lists cards with title, reason and the tokens they change", () => {
+    open();
+    expect($$(".sug h3").map((h) => h.textContent)).toEqual(["Let the hero breathe", "Warmer accent"]);
+    expect([...cardEl("bigger-hero").querySelectorAll(".chip")].map((c) => c.textContent)).toEqual(["Heading 1", "Section spacing"]);
+  });
+  it("Preview shows it on the page without touching history; Cancel ends it", () => {
+    open();
+    button("bigger-hero", "Preview").click();
+    expect(store.pageValues()["--text-h1"]).toBe(4);
+    expect(store.canUndo()).toBe(false);
+    expect(cardEl("bigger-hero").classList.contains("previewing")).toBe(true);
+    expect([...cardEl("bigger-hero").querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Cancel", "Apply"]);
+    button("bigger-hero", "Cancel").click();
+    expect(store.pageValues()["--text-h1"]).toBe(3.5);
+  });
+  it("only one preview at a time", () => {
+    open();
+    button("bigger-hero", "Preview").click();
+    button("warmer", "Preview").click();
+    expect(store.pageValues()["--text-h1"]).toBe(3.5);
+    expect(store.pageValues()["--color-accent"]).toBe("#b4380a");
+    expect($$(".sug.previewing")).toHaveLength(1);
+  });
+  it("Apply is one history entry and shows ✓ Applied; clicking it un-applies to the values before", () => {
+    store.apply({ "--text-h1": 5 });
+    open();
+    button("bigger-hero", "Preview").click();
+    button("bigger-hero", "Apply").click();
+    expect(store.shownValues()["--text-h1"]).toBe(4);
+    expect(store.getState().preview).toBeNull();
+    expect(cardEl("bigger-hero").querySelector(".applied-tag")!.textContent).toBe("Applied");
+    store.undo();
+    expect(store.shownValues()["--text-h1"]).toBe(5); // one entry
+    store.redo();
+    cardEl("bigger-hero").querySelector<HTMLButtonElement>(".applied-tag")!.click();
+    expect(store.shownValues()["--text-h1"]).toBe(5);
+    expect(store.shownValues()["--space-section"]).toBe(96);
+    expect(button("bigger-hero", "Preview")).toBeTruthy();
+  });
+  it("shows Applied when the values already match (e.g. after a reload)", () => {
+    store.apply({ "--color-accent": "#b4380a" });
+    open();
+    expect(cardEl("warmer").classList.contains("applied")).toBe(true);
+    cardEl("warmer").querySelector<HTMLButtonElement>(".applied-tag")!.click(); // unknown prior → original values
+    expect(store.shownValues()["--color-accent"]).toBe("#c2410c");
+  });
+  it("Copy changes removes applied cards from that version only; they return if un-applied", async () => {
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    open();
+    button("warmer", "Preview").click();
+    button("warmer", "Apply").click();
+    store.createVersion(); // B is a copy of A, so "warmer" is applied there too
+    store.view("A");
+    $<HTMLButtonElement>(".copy").click();
+    await Promise.resolve(); await Promise.resolve();
+    expect($$(".sug").map((c) => c.dataset.id)).toEqual(["bigger-hero"]);
+    store.view("B");
+    expect($$(".sug").map((c) => c.dataset.id)).toEqual(["bigger-hero", "warmer"]);
+    store.view("A");
+    store.undo(); // un-apply in A → the card comes back
+    expect($$(".sug").map((c) => c.dataset.id)).toEqual(["bigger-hero", "warmer"]);
+    vi.unstubAllGlobals();
+  });
+  it("leaving the tab or pressing Escape ends a preview", () => {
+    open();
+    button("bigger-hero", "Preview").click();
+    $$<HTMLButtonElement>('.tabs [role="tab"]')[0].click();
+    expect(store.getState().preview).toBeNull();
+    open();
+    button("bigger-hero", "Preview").click();
+    $(".win").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(store.getState().preview).toBeNull();
+  });
+  it("Original view shows a note instead of cards", () => {
+    open();
+    store.view("original");
+    expect($$(".sug")).toHaveLength(0);
+    expect($('[role="tabpanel"]:not([hidden]) .empty').textContent).toMatch(/Pick a version to preview them/);
+  });
+});

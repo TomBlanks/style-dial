@@ -9,10 +9,17 @@ export const VERSION_IDS = ["A", "B", "C"] as const;
 export type VersionId = (typeof VERSION_IDS)[number];
 export type ViewId = "original" | VersionId;
 
+export interface Preview {
+  id: string;
+  changes: Values;
+}
+
 export interface State {
   defaults: Values;
   versions: Partial<Record<VersionId, Values>>;
   active: ViewId;
+  /** A suggestion shown on the page temporarily: never in history, persistence, checks or export. */
+  preview: Preview | null;
 }
 
 type Listener = (state: State) => void;
@@ -27,7 +34,7 @@ export class Store {
     this.config = config;
     const defaults = defaultValues(config);
     const versions = initial?.versions ?? { A: { ...defaults } };
-    this.state = { defaults, versions, active: initial?.active ?? "A" };
+    this.state = { defaults, versions, active: initial?.active ?? "A", preview: null };
     for (const id of this.versionIds()) this.histories.set(id, new History(versions[id]!));
   }
 
@@ -51,6 +58,19 @@ export class Store {
   shownValues(): Values {
     const { active, versions, defaults } = this.state;
     return active === "original" ? defaults : versions[active] ?? defaults;
+  }
+
+  /** What the page should show: the shown values with any suggestion preview on top. */
+  pageValues(): Values {
+    const { preview } = this.state;
+    return preview ? { ...this.shownValues(), ...preview.changes } : this.shownValues();
+  }
+
+  /** Starts (or, with null, ends) a suggestion preview. Only on an editable version. */
+  setPreview(preview: Preview | null): void {
+    if (preview && !this.editable()) return;
+    if (preview === this.state.preview) return;
+    this.update({ preview });
   }
 
   /** Keys that differ from the defaults in the active version (empty for Original). */
@@ -174,8 +194,9 @@ export class Store {
     this.update({ versions: { ...this.state.versions, [id]: values } });
   }
 
+  /** Any other change (an edit, undo, switching version…) ends a suggestion preview. */
   private update(patch: Partial<State>): void {
-    this.state = { ...this.state, ...patch };
+    this.state = { ...this.state, preview: null, ...patch };
     this.notify();
   }
 

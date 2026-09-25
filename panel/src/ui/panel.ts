@@ -6,6 +6,7 @@ import { buildExport, copyText } from "../export";
 import { runChecks } from "../checks/rules";
 import { buildChecksPanel } from "./checks";
 import { buildControls } from "./controls";
+import { buildSuggestionsPanel } from "./suggestions";
 import { buildVersionBar } from "./versions";
 import { h, nextId, svg } from "./dom";
 import { ICONS } from "./icons";
@@ -131,17 +132,23 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
       { id: "checks", content: ["Checks", checksCount] },
       { id: "suggestions", content: ["Suggestions"] },
     ],
-    (id) => { tab = id; saveUi(); render(); },
+    (id) => {
+      if (id !== tab) store.setPreview(null); // leaving a tab ends any suggestion preview
+      tab = id;
+      saveUi();
+      render();
+    },
   );
   const controls = buildControls(config.tokens, {
     set: (name, value) => store.set(name, value),
     commit: () => store.commit(),
   });
   const checksPanel = buildChecksPanel((fix) => store.apply(fix));
+  const suggestionsPanel = buildSuggestionsPanel(store);
   const panels: Record<TabId, HTMLElement> = {
     controls: controls.el,
     checks: checksPanel.el,
-    suggestions: h("div", { class: "empty", text: "Suggestions arrive in milestone M4." }),
+    suggestions: suggestionsPanel.el,
   };
   for (const id of Object.keys(panels) as TabId[]) {
     const b = tabs.buttons.get(id)!;
@@ -205,6 +212,8 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
     if (state.active === "original" || store.changes().length === 0) return;
     const text = buildExport(config, state.active, store.shownValues(), state.defaults);
     const result = await copyText(text, shadow);
+    suggestionsPanel.copied(state.active);
+    render();
     if (result === "failed") {
       manualText.value = text;
       manual.hidden = false;
@@ -221,6 +230,7 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
   // Undo / redo shortcuts, only while focus is inside the panel. Text fields keep their own undo.
   win.addEventListener("keydown", (e) => {
     if (versions.shortcut(e)) { e.preventDefault(); return; }
+    if (e.key === "Escape" && store.getState().preview) { e.preventDefault(); store.setPreview(null); return; }
     if (!(e.metaKey || e.ctrlKey) || e.altKey || e.code !== "KeyZ") return;
     const target = e.composedPath()[0] as HTMLElement;
     if (target instanceof HTMLInputElement && target.type === "text") return;
@@ -243,6 +253,7 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
     tabs.select(tab);
     for (const id of Object.keys(panels) as TabId[]) panels[id].hidden = id !== tab;
     controls.update(store.shownValues(), state.defaults, isOriginal);
+    suggestionsPanel.render();
 
     if (isOriginal || changes === 0) confirming = false;
     actionsRow.hidden = isOriginal || confirming;
