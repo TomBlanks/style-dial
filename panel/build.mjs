@@ -12,6 +12,7 @@ const assets = resolve(here, "../skill/design-tweaker/assets");
 const examples = [
   { dir: resolve(here, "../examples/plain-html"), types: false },
   { dir: resolve(here, "../examples/react-vite-tailwind/src/dev"), types: true },
+  { dir: resolve(here, "../examples/nextjs-tailwind/app/dev"), types: true },
 ];
 const BUDGET = 30 * 1024;
 

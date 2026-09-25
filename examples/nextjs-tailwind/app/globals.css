@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Design tokens (token contract). `@theme static` keeps every token; never `@theme inline`. */
+@theme static {
+  --font-heading: var(--font-young-serif), Georgia, serif;
+  --font-body: var(--font-figtree), system-ui, sans-serif;
+
+  --text-body: 1.0625rem;
+  --text-h1: 3.75rem;
+  --text-h2: 2.25rem;
+  --text-h3: 1.25rem;
+  --text-small: 0.875rem;
+  --leading-body: 1.6;
+  --leading-heading: 1.1;
+
+  --measure: 60ch;
+  --space-section: 96px;
+  --space-gap: 24px;
+  --radius: 10px;
+
+  --color-fg: #2b1d14;
+  --color-muted: #6b5a4e;
+  --color-bg: #fbf5ec;
+  --color-surface: #ffffff;
+  --color-accent: #9a3b1b;
+  --color-accent-fg: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-fg font-body text-body leading-body antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-heading leading-(--leading-heading);
+  }
+}

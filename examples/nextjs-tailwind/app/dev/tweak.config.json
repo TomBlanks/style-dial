@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "id": "harbour-loaf",
+  "framework": "nextjs",
+  "tailwind": true,
+  "tokensFile": "app/globals.css",
+  "tokens": [
+    {
+      "var": "--text-body",
+      "label": "Body text",
+      "group": "Typography",
+      "role": "body-size",
+      "type": "size",
+      "unit": "rem",
+      "default": 1.0625,
+      "min": 0.875,
+      "max": 1.375,
+      "step": 0.0625
+    },
+    {
+      "var": "--text-h1",
+      "label": "Heading 1",
+      "group": "Typography",
+      "role": "h1-size",
+      "type": "size",
+      "unit": "rem",
+      "default": 3.75,
+      "min": 1.75,
+      "max": 6,
+      "step": 0.125
+    },
+    {
+      "var": "--text-h2",
+      "label": "Heading 2",
+      "group": "Typography",
+      "role": "h2-size",
+      "type": "size",
+      "unit": "rem",
+      "default": 2.25,
+      "min": 1.375,
+      "max": 4,
+      "step": 0.125
+    },
+    {
+      "var": "--text-h3",
+      "label": "Heading 3",
+      "group": "Typography",
+      "role": "h3-size",
+      "type": "size",
+      "unit": "rem",
+      "default": 1.25,
+      "min": 1.125,
+      "max": 2.5,
+      "step": 0.0625
+    },
+    {
+      "var": "--text-small",
+      "label": "Small text",
+      "group": "Typography",
+      "role": "small-size",
+      "type": "size",
+      "unit": "rem",
+      "default": 0.875,
+      "min": 0.75,
+      "max": 1,
+      "step": 0.0625
+    },
+    {
+      "var": "--leading-body",
+      "label": "Body line height",
+      "group": "Typography",
+      "role": "body-line-height",
+      "type": "number",
+      "default": 1.6,
+      "min": 1.2,
+      "max": 2.2,
+      "step": 0.05
+    },
+    {
+      "var": "--leading-heading",
+      "label": "Heading line height",
+      "group": "Typography",
+      "role": "heading-line-height",
+      "type": "number",
+      "default": 1.1,
+      "min": 0.9,
+      "max": 1.6,
+      "step": 0.05
+    },
+    {
+      "var": "--space-section",
+      "label": "Section spacing",
+      "group": "Spacing",
+      "role": "section-spacing",
+      "type": "size",
+      "unit": "px",
+      "default": 96,
+      "min": 24,
+      "max": 200,
+      "step": 4
+    },
+    {
+      "var": "--space-gap",
+      "label": "Element gap",
+      "group": "Spacing",
+      "role": "element-gap",
+      "type": "size",
+      "unit": "px",
+      "default": 24,
+      "min": 4,
+      "max": 64,
+      "step": 2
+    },
+    {
+      "var": "--measure",
+      "label": "Text width",
+      "group": "Layout",
+      "role": "measure",
+      "type": "size",
+      "unit": "ch",
+      "default": 60,
+      "min": 35,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "var": "--radius",
+      "label": "Corner radius",
+      "group": "Layout",
+      "role": "radius",
+      "type": "size",
+      "unit": "px",
+      "default": 10,
+      "min": 0,
+      "max": 32,
+      "step": 1
+    },
+    {
+      "var": "--color-fg",
+      "label": "Text",
+      "group": "Colour",
+      "role": "body-text",
+      "type": "color",
+      "default": "#2b1d14"
+    },
+    {
+      "var": "--color-muted",
+      "label": "Muted text",
+      "group": "Colour",
+      "role": "muted-text",
+      "type": "color",
+      "default": "#6b5a4e"
+    },
+    {
+      "var": "--color-bg",
+      "label": "Background",
+      "group": "Colour",
+      "role": "background",
+      "type": "color",
+      "default": "#fbf5ec"
+    },
+    {
+      "var": "--color-surface",
+      "label": "Card surface",
+      "group": "Colour",
+      "role": "surface",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "var": "--color-accent",
+      "label": "Accent",
+      "group": "Colour",
+      "role": "accent",
+      "type": "color",
+      "default": "#9a3b1b"
+    },
+    {
+      "var": "--color-accent-fg",
+      "label": "Text on accent",
+      "group": "Colour",
+      "role": "accent-text",
+      "type": "color",
+      "default": "#ffffff"
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "morning-hero",
+      "title": "A bigger morning welcome",
+      "reason": "The headline is the bakery's whole pitch; give it more size and room above today's bakes.",
+      "changes": {
+        "--text-h1": 4.5,
+        "--space-section": 120
+      }
+    },
+    {
+      "id": "crust-accent",
+      "title": "Darker crust colour",
+      "reason": "A deeper brown-red is closer to a well-baked crust than the current brick tone.",
+      "changes": {
+        "--color-accent": "#7c2d12"
+      }
+    },
+    {
+      "id": "cosy-cards",
+      "title": "Cosier bake cards",
+      "reason": "Tighter gaps and rounder corners make the three bakes feel like a counter display, not a grid.",
+      "changes": {
+        "--space-gap": 18,
+        "--radius": 16
+      }
+    }
+  ]
+}
