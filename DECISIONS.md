@@ -117,3 +117,20 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §6.7 | Which applied suggestions were copied is remembered per version, in memory only. A copied card comes back if it stops being applied (undo, manual edit, un-apply). | Matches the agreed rule that nothing is final until it's copied, and nothing is lost by accident. |
 | §6.7 | Empty states: "No suggestions for this design." when the config has none; "No suggestions left for this version." when all were applied and copied; in Original, "Suggestions are tried on a version. Pick a version to preview them." | Clear wording for each case. |
 | §6.7 | The card's change summary shows the changed tokens' labels as small chips, e.g. "Heading 1", "Section spacing". This replaces a comma-separated line. | Matches the approved mockup. |
+
+## M5.1 build notes: Vite + Tailwind v4 (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §4.3, §4.4 | **Tailwind projects declare tokens with `@theme static { … }`, not plain `@theme`.** Tested on Tailwind 4.3.3: plain `@theme` **drops variables that no utility uses**. In the probe, `--text-h2`, `--text-h3`, `--space-gap` and `--color-surface` were missing from the CSS, so their sliders did nothing and the out-of-date check warned. `static` emits every token in the block. Tailwind's own unused defaults are still trimmed, so the cost is a few bytes. `@theme inline` is still forbidden. | Found by testing (Tailwind's actual output, one of the flagged risks). |
+| §6.3 | Confirmed: Tailwind v4 outputs theme variables as `@layer theme { :root, :host { … } }`. The panel's unlayered `:root` override wins in the dev server; Heading 1 and the accent changed live. | Confirms the spec's assumption. |
+| §5.3 | Confirmed: production minification shortens colours, e.g. `#ffffff` → `#fff`. The out-of-date check already accepts 3-digit hex, so no false warnings. | Noted for anyone reading computed values. |
+| §10.2 | Confirmed as written: Vite removes the `import.meta.env.DEV` block from production builds. Neither the panel code nor the config appears in `dist/`. The `import("./dev/tweak-panel.js")` side-effect import works with the IIFE file, and `tweak-panel.d.ts` beside it types `window.TweakPanel` under `tsc --noEmit`. | Verified. |
+| §3 | `npm run build` in `panel/` also copies `tweak-panel.js` and `tweak-panel.d.ts` into `examples/react-vite-tailwind/src/dev/`. | Examples always run the latest panel. |
+
+## Changes from review during M5.1 (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §7 C11 | **The heading-order warning now has a Fix** (the spec had none; user decision). It repairs the whole type scale in one click. It keeps the size the user changed (the upper heading of the pair, or the lower one if only that changed) and moves the others. Each level ends up at least 10% bigger than the one below, snapped to the token's step. **Body text is never changed.** Stress test: 2,000 random scales on the Fieldnotes config all fixed in 1 click, with body text never shrunk. | The user wanted a Fix. A first version that fixed one pair at a time looped in 22 of 2,000 cases, so the whole scale is repaired at once. |
+| §6.7 | **Size and spacing suggestions you've already gone past are hidden** (user decision). A suggestion counts as passed when every numeric change has been reached or exceeded in the direction it moves from the default (e.g. Heading 1 suggested 4.75rem from 4rem, and it's now 5.5rem). Colour changes only count when equal. It reappears if the values move back, e.g. after undo. | Stops the panel offering a change that would actually undo what you did. |

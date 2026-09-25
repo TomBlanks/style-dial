@@ -430,3 +430,29 @@ describe("Suggestions tab", () => {
     expect($('[role="tabpanel"]:not([hidden]) .empty').textContent).toMatch(/Pick a version to preview them/);
   });
 });
+
+describe("suggestions you've already gone past (user decision: hidden)", () => {
+  // "bigger-hero" suggests --text-h1 4 (from 3.5) and --space-section 112 (from 96)
+  const open = () => $$<HTMLButtonElement>('.tabs [role="tab"]')[2].click();
+  const ids = () => $$(".sug").map((c) => c.dataset.id);
+
+  it("hides a size suggestion once every change has been passed in the same direction", () => {
+    open();
+    store.apply({ "--text-h1": 5 });
+    expect(ids()).toContain("bigger-hero"); // section spacing not passed yet
+    store.apply({ "--space-section": 140 });
+    expect(ids()).not.toContain("bigger-hero");
+    store.undo();
+    expect(ids()).toContain("bigger-hero"); // comes back
+  });
+  it("going the other way doesn't hide it", () => {
+    open();
+    store.apply({ "--text-h1": 3, "--space-section": 80 });
+    expect(ids()).toContain("bigger-hero");
+  });
+  it("colour suggestions only count when the colour matches exactly", () => {
+    open();
+    store.apply({ "--color-accent": "#8f2a06" }); // darker than the suggestion, but not equal
+    expect(ids()).toContain("warmer");
+  });
+});

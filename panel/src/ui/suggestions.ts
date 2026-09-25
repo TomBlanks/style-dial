@@ -23,6 +23,23 @@ export function buildSuggestionsPanel(store: Store) {
   const isApplied = (s: Suggestion, values: Values) =>
     Object.entries(s.changes).every(([k, v]) => sameValue(values[k], v));
 
+  /**
+   * True when the user has already gone past a size/spacing suggestion in the same direction
+   * (e.g. it suggests Heading 1 → 4.75rem from 4rem and it's now 5.5rem). Colours only count when equal.
+   * Such suggestions are hidden (user decision) and come back if the values move back.
+   */
+  const byVar = new Map(config.tokens.map((t) => [t.var, t]));
+  const isPassed = (s: Suggestion, values: Values) =>
+    !isApplied(s, values) &&
+    Object.entries(s.changes).every(([k, v]) => {
+      const t = byVar.get(k)!;
+      if (t.type === "color" || typeof v !== "number") return sameValue(values[k], v);
+      const now = Number(values[k]);
+      if (v > t.default) return now >= v;
+      if (v < t.default) return now <= v;
+      return sameValue(now, v);
+    });
+
   function apply(s: Suggestion, version: VersionId) {
     const current = store.getState().versions[version]!;
     const prior: Values = {};
@@ -89,6 +106,7 @@ export function buildSuggestionsPanel(store: Store) {
       const values = state.versions[version]!;
       const hidden = copied.get(version) ?? new Set<string>();
       const shown = config.suggestions.filter((s) => {
+        if (isPassed(s, values)) return false;
         if (!hidden.has(s.id)) return true;
         if (isApplied(s, values)) return false;
         hidden.delete(s.id); // no longer applied (undo or a manual edit): it comes back
@@ -96,7 +114,9 @@ export function buildSuggestionsPanel(store: Store) {
       });
       list.hidden = shown.length === 0;
       empty.hidden = shown.length > 0;
-      empty.textContent = config.suggestions.length ? "No suggestions left for this version." : "No suggestions for this design.";
+      empty.textContent = config.suggestions.length
+        ? "No suggestions left for this version. You've applied or gone past them all."
+        : "No suggestions for this design.";
 
       // Keep focus on the same card across re-renders (the buttons inside are replaced).
       const root = el.getRootNode() as ShadowRoot | Document;

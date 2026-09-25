@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/*
+  Design tokens (token contract). `@theme static` so every token is emitted even if
+  Tailwind can't see it used, and never `@theme inline` (that would bake values in).
+*/
+@theme static {
+  --font-heading: "Newsreader", Georgia, serif;
+  --font-body: "Instrument Sans", system-ui, sans-serif;
+
+  --text-body: 1.0625rem;
+  --text-h1: 4rem;
+  --text-h2: 2.5rem;
+  --text-h3: 1.375rem;
+  --text-small: 0.875rem;
+  --leading-body: 1.6;
+  --leading-heading: 1.1;
+
+  --measure: 62ch;
+  --space-section: 112px;
+  --space-gap: 24px;
+  --radius: 14px;
+
+  --color-fg: #16201c;
+  --color-muted: #55615c;
+  --color-bg: #f4f6f2;
+  --color-surface: #ffffff;
+  --color-accent: #2f6b4f;
+  --color-accent-fg: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-fg font-body text-body leading-body antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-heading leading-(--leading-heading) font-semibold tracking-tight;
+  }
+}

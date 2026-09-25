@@ -74,11 +74,39 @@ describe("runChecks", () => {
     expect(ids({ "--leading-body": 1.4 })).toEqual([]);
     expect(ids({ "--leading-body": 2 })).toEqual([]);
   });
-  it("C11 heading hierarchy names the pair out of order, and has no fix", () => {
-    const r = one("C11:--text-h1", { "--text-h1": 2 }); // h1 32px < h2 36px
-    expect(r.message).toBe("Heading 2 (36px) is larger than Heading 1 (32px).");
-    expect(r.fix).toBeUndefined();
+  it("C11 heading hierarchy names the pair out of order", () => {
+    expect(one("C11:--text-h1", { "--text-h1": 2 }).message).toBe("Heading 2 (36px) is larger than Heading 1 (32px).");
     expect(one("C11:--text-h3", { "--text-h3": 1.0625 }).message).toBe("Heading 3 and Body text are the same size (17px).");
+  });
+  it("C11 smart fix: you shrank Heading 1 → Heading 2 comes down; Heading 1 is left alone", () => {
+    const fix = one("C11:--text-h1", { "--text-h1": 1.75 }).fix!; // user's case: H1 28px < H2 36px
+    expect("--text-h1" in fix).toBe(false);
+    expect("--text-body" in fix).toBe(false);
+    expect((fix["--text-h2"] as number) * 16).toBeLessThan(28);
+  });
+  it("C11 smart fix: you enlarged Heading 2 → Heading 1 goes up", () => {
+    const fix = one("C11:--text-h1", { "--text-h2": 3.75 }).fix!; // H2 60px > H1 56px
+    expect(Object.keys(fix)).toEqual(["--text-h1"]);
+    expect((fix["--text-h1"] as number) * 16).toBeGreaterThan(60);
+  });
+  it("C11 smart fix never shrinks body text", () => {
+    const fix = one("C11:--text-h3", { "--text-body": 1.375, "--text-h3": 1.25 }).fix!; // body 22px > H3 20px
+    expect(Object.keys(fix)).toEqual(["--text-h3"]);
+    expect((fix["--text-h3"] as number) * 16).toBeGreaterThan(22);
+  });
+  it("C11 fixes settle in a few clicks and keep the size you chose", () => {
+    let values = { ...d, "--text-h1": 1.75 } as any; // H1 28px
+    let clicks = 0;
+    for (; clicks < 6; clicks++) {
+      const r = runChecks(full, values).find((x) => x.id.startsWith("C11"));
+      if (!r) break;
+      values = { ...values, ...r.fix };
+    }
+    expect(clicks).toBe(1); // the whole scale is repaired in one click
+    expect(values["--text-h1"]).toBe(1.75);
+    const px = ["--text-h1", "--text-h2", "--text-h3", "--text-body"].map((k) => values[k] * 16);
+    expect(px).toEqual([...px].sort((x, y) => y - x));
+    expect(new Set(px).size).toBe(4);
   });
   it("C12 adjacent sizes within 10% (info, no fix)", () => {
     const r = one("C12:--text-h2", { "--text-h2": 1.625 }); // 26px vs h3 24px

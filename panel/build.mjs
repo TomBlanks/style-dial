@@ -8,7 +8,11 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(here, "dist/tweak-panel.js");
 const assets = resolve(here, "../skill/design-tweaker/assets");
-const example = resolve(here, "../examples/plain-html");
+// Every example gets the freshly built panel (the skill's assets are the source of truth).
+const examples = [
+  { dir: resolve(here, "../examples/plain-html"), types: false },
+  { dir: resolve(here, "../examples/react-vite-tailwind/src/dev"), types: true },
+];
 const BUDGET = 30 * 1024;
 
 await build({
@@ -25,7 +29,11 @@ await build({
 mkdirSync(assets, { recursive: true });
 copyFileSync(out, resolve(assets, "tweak-panel.js"));
 copyFileSync(resolve(here, "src/tweak-panel.d.ts"), resolve(assets, "tweak-panel.d.ts"));
-copyFileSync(out, resolve(example, "tweak-panel.js"));
+for (const { dir, types } of examples) {
+  mkdirSync(dir, { recursive: true });
+  copyFileSync(out, resolve(dir, "tweak-panel.js"));
+  if (types) copyFileSync(resolve(here, "src/tweak-panel.d.ts"), resolve(dir, "tweak-panel.d.ts"));
+}
 
 const gz = gzipSync(readFileSync(out)).length;
 const kb = (n) => (n / 1024).toFixed(1) + " KB";

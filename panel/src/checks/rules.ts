@@ -1,7 +1,7 @@
 // Design checks C1–C12 (spec §7). Pure: config + values in, results out.
 
 import type { Role, Token, TweakConfig } from "../config/types";
-import { clamp, formatNumber } from "../format";
+import { clamp, formatNumber, snap } from "../format";
 import type { Values } from "../state/values";
 import { FIX_MARGIN, contrast, fixLightness, fixLightnessForAll } from "./color";
 
@@ -165,6 +165,7 @@ export function runChecks(config: TweakConfig, values: Values): CheckResult[] {
         message: big.px === small.px
           ? `${a} and ${b} are the same size (${formatNumber(big.px)}px).`
           : `${b} (${formatNumber(small.px)}px) is larger than ${a} (${formatNumber(big.px)}px).`,
+        fix: hierarchyFix(scale, i, values),
       });
     } else if (big.px < small.px * 1.1) {
       out.push({
@@ -174,4 +175,57 @@ export function runChecks(config: TweakConfig, values: Values): CheckResult[] {
     }
   }
   return out;
+}
+
+type ScaleStep = { token: Token; px: number };
+
+/**
+ * Fix for an out-of-order pair (user decision, see DECISIONS.md). It repairs the whole type scale in one
+ * click so fixes never ping-pong:
+ * - Keep the size the user changed. If they changed the upper heading of the pair (or both/neither),
+ *   walk down the scale moving lower headings below it (each ≥10% smaller). If they changed the lower
+ *   one, or the lower one is body text, don't move anything down.
+ * - Then walk up from body text, raising any size that isn't at least 10% above the one below it.
+ * Body text is never changed. Sizes are snapped to each token's step (away from the clash) and clamped.
+ */
+function hierarchyFix(scale: ScaleStep[], i: number, values: Values): Values | undefined {
+  const changed = (t: Token) => t.type !== "color" && Math.abs(Number(values[t.var]) - t.default) > 1e-9;
+  const big = scale[i];
+  const small = scale[i + 1];
+  const moveDown = small.token.role !== "body-size" && !(changed(small.token) && !changed(big.token));
+
+  const px = scale.map((s) => s.px);
+  const isBody = (j: number) => scale[j].token.role === "body-size";
+  const place = (j: number, target: number, dir: "up" | "down") => {
+    const snapped = snapPx(scale[j].token, target, dir);
+    if (snapped !== undefined) px[j] = snapped;
+  };
+
+  if (moveDown) {
+    for (let j = i; j < px.length - 1; j++) {
+      if (isBody(j + 1) || px[j + 1] * 1.1 <= px[j]) break;
+      place(j + 1, px[j] / 1.1, "down");
+    }
+  }
+  for (let j = px.length - 2; j >= 0; j--) {
+    if (px[j] < px[j + 1] * 1.1) place(j, px[j + 1] * 1.1, "up");
+  }
+
+  const fix: Values = {};
+  scale.forEach((s, j) => {
+    if (Math.abs(px[j] - s.px) > 1e-6) fix[s.token.var] = toUnit(s.token, px[j]);
+  });
+  return Object.keys(fix).length ? fix : undefined;
+}
+
+const toUnit = (t: Token, px: number) => (t.type === "size" && t.unit === "rem" ? Math.round((px / 16) * 1e4) / 1e4 : px);
+
+/** A px target snapped to the token's step (rounding away from the clash) and clamped; returned in px. */
+function snapPx(t: Token, px: number, dir: "up" | "down"): number | undefined {
+  if (t.type !== "size") return undefined;
+  const raw = t.unit === "rem" ? px / 16 : px;
+  const steps = (raw - t.min) / t.step;
+  const stepped = t.min + (dir === "up" ? Math.ceil(steps - 1e-9) : Math.floor(steps + 1e-9)) * t.step;
+  const value = snap(clamp(stepped, t.min, t.max), t.min, t.max, t.step);
+  return t.unit === "rem" ? value * 16 : value;
 }
