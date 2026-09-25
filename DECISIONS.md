@@ -84,3 +84,14 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §9 | Reconciliation runs token by token. It also repairs stored values: out-of-range numbers are clamped, and a wrong type or invalid hex falls back to the default. Unreadable storage gives a fresh Version A. | Stored data can go stale when the config's ranges or types change. |
 | §6.11 | Clicking **Copy changes** first commits any unfinished edit, so the copied text matches what's on screen. | Keeps the export and the page in sync. |
 | §6.11 | The temporary textarea used by the `execCommand` fallback is created inside the panel's shadow root. If both methods fail, a "Copy this manually" box covers the panel with the text pre-selected; Close or Escape dismisses it. | The site's DOM is never touched. The box is always readable at the panel's size. |
+
+## M3.1 build notes (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §7 | The spec's OKLCH lightness-fix method **works as written**. Tested on 8 realistic pairs, light and dark, low and high chroma: every fix reached its target, hue stayed within about 2°, and chroma dropped only where the darker colour wouldn't fit in sRGB. | Checked before building on it (the user flagged this as a risk). |
+| §7 | "Light background" means one where black text contrasts more than white. Light backgrounds search darker, dark backgrounds search lighter. | A precise version of the spec's "darker on light backgrounds, lighter on dark ones". |
+| §7 | The search is a binary search on OKLCH lightness, with contrast checked against the final rounded hex value. The returned colour always meets the target, even after rounding. | Checking the pre-rounding value could produce a hex that falls just short. |
+| §7 | Sanity note: the black/white fallback almost never fires for 4.5:1 or 3:1. On any background, whichever of black or white the search heads toward reaches at least 4.58:1. It's kept for completeness and tested with an impossible 7:1 target. | So nobody expects to see it in normal use. |
+| §7 | Relative luminance uses the 0.04045 sRGB threshold from the current WCAG 2.x text, rather than the older 0.03928. | The results are the same to 2 decimal places. It matches the corrected spec text. |
+| §7 | **Fix buttons aim 0.1 above the target**: 4.6:1 for text and 3.1:1 for accents (`FIX_MARGIN`). If that can't be reached, they aim for the plain target. The check still triggers at exactly the spec thresholds (4.5 and 3.0). C4 still picks black or white. | The user asked for this. Fixes landing at 4.51:1 would fail again after the slightest tweak. |
