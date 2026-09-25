@@ -20,6 +20,7 @@ export const CSS = `
   --warn: #b25000;
   --warn-soft: rgb(255 149 0 / .16);
   --danger: #d70015;
+  --info: #0066d6;
   --tip-bg: #1d1d1f;
   --tip-text: #ffffff;
   --shadow: 0 0 0 .5px rgb(0 0 0 / .16), 0 12px 40px rgb(0 0 0 / .16), 0 2px 8px rgb(0 0 0 / .06);
@@ -40,6 +41,7 @@ export const CSS = `
     --warn: #ffb340;
     --warn-soft: rgb(255 159 10 / .18);
     --danger: #ff453a;
+    --info: #5eb1ff;
     --tip-bg: #f5f5f7;
     --tip-text: #1d1d1f;
     --shadow: 0 0 0 .5px rgb(255 255 255 / .12), 0 12px 40px rgb(0 0 0 / .5);
@@ -194,6 +196,15 @@ input:disabled { opacity: .45; cursor: default; }
 }
 .hex:focus { box-shadow: 0 0 0 2px var(--accent); }
 
+.list { list-style: none; margin: 0; padding: 8px; display: grid; gap: 6px; }
+.check {
+  display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: start; padding: 9px 10px;
+  border-radius: 9px; background: var(--control); box-shadow: 0 0 0 .5px var(--stroke);
+}
+.check p { margin: 0; }
+.check .ic { margin-top: 1px; display: block; }
+.check.warning .ic { color: var(--warn); }
+.check.info .ic { color: var(--info); }
 .btn {
   border: 0; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 500; cursor: pointer;
   background: var(--fill-2); height: 24px; white-space: nowrap;

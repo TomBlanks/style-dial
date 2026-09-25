@@ -298,3 +298,47 @@ describe("versions bar", () => {
     expect($$(".dot").filter((d) => !d.hidden)).toHaveLength(2);
   });
 });
+
+describe("Checks tab", () => {
+  const checksTab = () => $$<HTMLButtonElement>('.tabs [role="tab"]')[1];
+  const open = () => checksTab().click();
+
+  it("shows 'No issues found.' for a clean design, and no badge", () => {
+    open();
+    expect($('[role="tabpanel"]:not([hidden]) .empty').textContent).toBe("No issues found.");
+    expect(checksTab().querySelector<HTMLElement>(".count")!.hidden).toBe(true);
+  });
+  it("re-runs 100ms after a change; the badge counts warnings only", () => {
+    vi.useFakeTimers();
+    store.apply({ "--color-fg": "#bbbbbb", "--measure": 40 }); // C1 warning + C7 info
+    expect($$(".check")).toHaveLength(0);
+    vi.advanceTimersByTime(100);
+    expect($$(".check").map((c) => c.dataset.id)).toEqual(["C1", "C7"]);
+    expect(checksTab().querySelector(".count")!.textContent).toBe("1");
+    vi.useRealTimers();
+  });
+  it("Fix applies as one undoable step", () => {
+    vi.useFakeTimers();
+    store.apply({ "--measure": 90 });
+    vi.advanceTimersByTime(100);
+    open();
+    $<HTMLButtonElement>('.check[data-id="C6"] .btn').click();
+    expect(store.shownValues()["--measure"]).toBe(68);
+    vi.advanceTimersByTime(100);
+    expect($$(".check")).toHaveLength(0);
+    $<HTMLButtonElement>('[aria-label="Undo"]').click();
+    expect(store.shownValues()["--measure"]).toBe(90);
+    vi.useRealTimers();
+  });
+  it("Original view shows the original design's results without Fix buttons", () => {
+    vi.useFakeTimers();
+    const s = new Store(validSample((c) => { c.tokens[4].default = 90; })); // original measure is too long
+    panel!.destroy();
+    panel = mountPanel(s, { ui: { expanded: true, tab: "checks", active: "A" }, onUiChange: () => {} });
+    s.view("original");
+    vi.advanceTimersByTime(100);
+    expect($$(".check").map((c) => c.dataset.id)).toEqual(["C6"]);
+    expect($$(".check .btn")).toHaveLength(0);
+    vi.useRealTimers();
+  });
+});

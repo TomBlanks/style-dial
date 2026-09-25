@@ -95,3 +95,15 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §7 | Sanity note: the black/white fallback almost never fires for 4.5:1 or 3:1. On any background, whichever of black or white the search heads toward reaches at least 4.58:1. It's kept for completeness and tested with an impossible 7:1 target. | So nobody expects to see it in normal use. |
 | §7 | Relative luminance uses the 0.04045 sRGB threshold from the current WCAG 2.x text, rather than the older 0.03928. | The results are the same to 2 decimal places. It matches the corrected spec text. |
 | §7 | **Fix buttons aim 0.1 above the target**: 4.6:1 for text and 3.1:1 for accents (`FIX_MARGIN`). If that can't be reached, they aim for the plain target. The check still triggers at exactly the spec thresholds (4.5 and 3.0). C4 still picks black or white. | The user asked for this. Fixes landing at 4.51:1 would fail again after the slightest tweak. |
+
+## M3.2 build notes (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §7 C1, C5 | Body text sits on both the page background and the card surface, so C1 and C5 fixes must agree. Both first look for **one text colour that reads on both**, searching darker *and* lighter for the smallest lightness change. If no such colour exists (e.g. light page, dark cards), C1 fixes the text against the page, and **C5 adjusts the card colour instead** ("No text colour works on both the page and the cards, so Fix adjusts the card colour."). Stress test: 3,000 random designs all settle with no colour warnings after at most 5 Fix clicks. | The spec's one-direction, one-background fix made C1 and C5 undo each other in an endless loop (the user reported this; 56 looping combinations reproduced). |
+| §7 C3 | **The accent Fix also protects text on the accent** (user decision). After reaching 3:1 on the background, it keeps moving the accent's lightness the same way until the accent-text colour reaches 4.5:1 on it. It only does this if both stay satisfied; otherwise just the accent is fixed and C4 handles the text. | One click fixes a light accent button without flipping white button text to black. |
+| §7 C11 | One warning per out-of-order adjacent pair, naming both, e.g. "Heading 2 (60px) is larger than Heading 1 (56px)." Equal sizes count as out of order ("…are the same size"). | "Names which pair is out of order." Several pairs can be wrong at once. |
+| §7 C12 | "Within 10%" means the larger size is less than 1.1 × the smaller. It's only reported for pairs that are in the right order, since C11 already covers the others. | Avoids two messages about the same pair. |
+| §7 C8 | The fix is `1` for rem body text and `16` for px body text. All fix values are clamped into the token's range. | The contract allows either unit. A fix must never produce an out-of-range value. |
+| §7 | Checks run straight away when the panel mounts, then 100ms after each change. The Checks badge counts warnings only and is hidden at 0. | Results are there as soon as you open the tab. |
+| §7 | Contrast ratios in messages are shown to 1 decimal place, e.g. "2.4:1". | Matches the spec's example message. |

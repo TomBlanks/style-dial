@@ -3,6 +3,8 @@
 import type { Store } from "../state/store";
 import type { TabId, UiState } from "../state/persist";
 import { buildExport, copyText } from "../export";
+import { runChecks } from "../checks/rules";
+import { buildChecksPanel } from "./checks";
 import { buildControls } from "./controls";
 import { buildVersionBar } from "./versions";
 import { h, nextId, svg } from "./dom";
@@ -135,9 +137,10 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
     set: (name, value) => store.set(name, value),
     commit: () => store.commit(),
   });
+  const checksPanel = buildChecksPanel((fix) => store.apply(fix));
   const panels: Record<TabId, HTMLElement> = {
     controls: controls.el,
-    checks: h("div", { class: "empty", text: "Design checks arrive in milestone M3." }),
+    checks: checksPanel.el,
     suggestions: h("div", { class: "empty", text: "Suggestions arrive in milestone M4." }),
   };
   for (const id of Object.keys(panels) as TabId[]) {
@@ -256,13 +259,32 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
     launcher.button.setAttribute("aria-label", `Open Design Tweaker${changes ? ` (${changes} unsaved change${changes === 1 ? "" : "s"})` : ""}`);
   }
 
-  const stop = store.subscribe(render);
+  // Checks re-run after every change or version switch, debounced to 100ms (spec §7).
+  let checkTimer: ReturnType<typeof setTimeout> | undefined;
+  function runChecksNow() {
+    clearTimeout(checkTimer);
+    checkTimer = undefined;
+    const results = runChecks(config, store.shownValues());
+    const warnings = results.filter((r) => r.severity === "warning").length;
+    checksPanel.update(results, store.getState().active === "original");
+    checksCount.hidden = warnings === 0;
+    checksCount.textContent = warnings ? String(warnings) : "";
+    checksCount.setAttribute("aria-label", `${warnings} warning${warnings === 1 ? "" : "s"}`);
+  }
+  const scheduleChecks = () => {
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(runChecksNow, 100);
+  };
+
+  const stop = store.subscribe(() => { render(); scheduleChecks(); });
   render();
+  runChecksNow();
 
   return {
     destroy() {
       stop();
       clearTimeout(toastTimer);
+      clearTimeout(checkTimer);
       collapse.dispose();
       host.remove();
     },

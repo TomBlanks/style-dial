@@ -115,3 +115,46 @@ export function fixLightness(fg: string, bg: string, target: number, margin = 0)
   }
   return at(pass);
 }
+
+/**
+ * The closest lightness change to `fg` (hue and chroma kept) that reaches `target` + `margin` against
+ * **every** background, searching both darker and lighter. Returns null if no lightness works for all.
+ * Used when backgrounds differ (e.g. light page, dark cards) and the one-direction search can't serve both.
+ */
+export function fixLightnessForAll(fg: string, bgs: string[], target: number, margin = 0): string | null {
+  const worst = (hex: string) => Math.min(...bgs.map((b) => contrast(hex, b)));
+  const goal = target + margin;
+  if (worst(fg) >= goal) return fg;
+  const start = hexToOklch(fg);
+  const at = (l: number) => oklchToHex({ ...start, l });
+
+  const search = (end: number, need: number): number | null => {
+    // Find the passing point nearest to `start` between start and end (sampled, then refined).
+    const steps = 200;
+    let prev = start.l;
+    for (let i = 1; i <= steps; i++) {
+      const l = start.l + ((end - start.l) * i) / steps;
+      if (worst(at(l)) >= need) {
+        let fail = prev;
+        let pass = l;
+        for (let j = 0; j < 30; j++) {
+          const mid = (fail + pass) / 2;
+          if (worst(at(mid)) >= need) pass = mid;
+          else fail = mid;
+        }
+        return pass;
+      }
+      prev = l;
+    }
+    return null;
+  };
+
+  for (const need of margin > 0 ? [goal, target] : [goal]) {
+    const options = [search(0, need), search(1, need)].filter((l): l is number => l !== null);
+    if (options.length) {
+      const best = options.reduce((a, b) => (Math.abs(a - start.l) <= Math.abs(b - start.l) ? a : b));
+      return at(best);
+    }
+  }
+  return null;
+}
