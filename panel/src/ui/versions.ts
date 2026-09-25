@@ -56,7 +56,7 @@ export function buildVersionBar(store: Store, trailing: HTMLElement) {
 
   const tabs = new Map<ViewId, HTMLButtonElement>();
   const dots = new Map<VersionId, HTMLElement>();
-  const removers = new Map<VersionId, HTMLButtonElement>();
+  const removers = new Map<VersionId, HTMLElement>();
   let builtFor = "";
 
   function focusTab(id: ViewId) {
@@ -76,12 +76,14 @@ export function buildVersionBar(store: Store, trailing: HTMLElement) {
       const dot = h("span", { class: "dot", "aria-hidden": "true" });
       tab.appendChild(dot);
       dots.set(id, dot);
-      const remove = h("button", {
-        type: "button", class: "vtab-x", "aria-label": `Delete Version ${id}`, tabIndex: -1,
+      // The ✕ is a mouse shortcut only; keyboard and screen-reader users press Delete on the tab
+      // (announced via aria-keyshortcuts). Keeping it out of the accessibility tree keeps the tablist valid.
+      const remove = h("span", {
+        class: "vtab-x", "aria-hidden": "true", title: `Delete Version ${id}`,
         onclick: (e: Event) => { e.stopPropagation(); askDelete(id); },
       }, svg(ICONS.close));
       removers.set(id, remove);
-      return h("span", { class: "vtab" }, tab, remove);
+      return h("span", { class: "vtab", role: "none" }, tab, remove);
     }));
   }
 

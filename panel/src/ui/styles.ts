@@ -15,7 +15,8 @@ export const CSS = `
   --text-2: #5e5e63;
   --control: #ffffff;
   --raised: #ffffff;
-  --accent: #0066d6;
+  --accent: #0066d6;       /* fills (buttons, sliders, dots); white text on it ≥ 4.5:1 */
+  --accent-ink: #0066d6;   /* blue text on the panel's backgrounds ≥ 4.5:1 */
   --accent-text: #ffffff;
   --warn: #b25000;
   --warn-soft: rgb(255 149 0 / .16);
@@ -37,10 +38,11 @@ export const CSS = `
     --text-2: #a8a8ae;
     --control: rgb(255 255 255 / .07);
     --raised: #3a3a3d;
-    --accent: #0a84ff;
+    --accent: #0071df;
+    --accent-ink: #67aaff;
     --warn: #ffb340;
     --warn-soft: rgb(255 159 10 / .18);
-    --danger: #ff453a;
+    --danger: #d70015;
     --info: #5eb1ff;
     --tip-bg: #f5f5f7;
     --tip-text: #1d1d1f;
@@ -101,7 +103,7 @@ svg { width: 16px; height: 16px; flex: none; display: block; }
 .spacer { flex: 1; }
 .seg { display: flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--fill); }
 .seg [role="tab"] {
-  border: 0; background: transparent; border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: 12px; font-weight: 500;
+  border: 0; background: transparent; border-radius: 6px; padding: 3px 9px; min-height: 24px; cursor: pointer; font-size: 12px; font-weight: 500;
   color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; gap: 5px;
 }
 .seg [role="tab"]:hover { color: var(--text); }
@@ -217,7 +219,7 @@ input:disabled { opacity: .45; cursor: default; }
 .sug-actions .actions { display: flex; gap: 6px; }
 .applied-tag {
   display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px 0 4px; margin-left: -4px; border: 0; border-radius: 6px;
-  background: transparent; color: var(--accent); font-size: 12px; font-weight: 500; cursor: pointer;
+  background: transparent; color: var(--accent-ink); font-size: 12px; font-weight: 500; cursor: pointer;
 }
 .applied-tag svg { width: 14px; height: 14px; }
 .applied-tag:hover { background: var(--fill-2); }

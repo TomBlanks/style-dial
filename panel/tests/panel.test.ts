@@ -250,18 +250,18 @@ describe("versions bar", () => {
     expect($$(".vtab-x").filter((x) => !x.hidden)).toHaveLength(0);
     add().click();
     const visible = $$(".vtab-x").filter((x) => !x.hidden);
-    expect(visible.map((x) => x.getAttribute("aria-label"))).toEqual(["Delete Version B"]);
+    expect(visible.map((x) => x.getAttribute("title"))).toEqual(["Delete Version B"]);
   });
   it("delete asks first, showing the change count; Cancel keeps it; Delete removes it", () => {
     add().click();
     store.apply({ "--text-h1": 5, "--color-accent": "#000000" });
-    $<HTMLButtonElement>('[aria-label="Delete Version B"]').click();
+    $('[title="Delete Version B"]').click();
     const confirm = $(".top.confirm-row");
     expect(confirm.hidden).toBe(false);
     expect(confirm.textContent).toContain("Delete Version B? Its 2 changes will be lost.");
     confirm.querySelector<HTMLButtonElement>(".btn:not(.danger)")!.click();
     expect(store.versionIds()).toEqual(["A", "B"]);
-    $<HTMLButtonElement>('[aria-label="Delete Version B"]').click();
+    $('[title="Delete Version B"]').click();
     $<HTMLButtonElement>(".btn.danger").click();
     expect(store.versionIds()).toEqual(["A"]);
     expect($(".top.confirm-row").hidden).toBe(true);

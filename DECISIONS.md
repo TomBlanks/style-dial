@@ -182,3 +182,12 @@ Decisions made while building v1, including anywhere the implementation departs 
 |---|---|---|
 | §10.3 | `DevTweakPanel` imports the config **statically** and its effect depends on `[config]`. When the config file changes (Claude applying tweaks), Next's Fast Refresh gives the component the new config, and the panel unmounts (saving) and remounts, reconciling exactly like a page reload. The component is still only imported in development, so production is unaffected. | Trial 3: after Claude applied the tweaks, the page updated but the panel kept the old defaults until a manual reload. Reproduced by editing the files on disk while the dev server ran; the fix was verified in 3 of 3 runs. Vite was already fine: a config change makes Vite reload the page. |
 | §5.3 | The "config out of date" console check runs 2 seconds after mounting (and is cancelled on unmount) instead of immediately. | During a hot update, the CSS and config arrive a moment apart, so an immediate check logged false warnings. |
+
+## Acceptance pass (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §6.12 | Dark mode uses two blues. `--accent: #0071df` is for fills (white text on it is 4.74:1), and a new `--accent-ink: #67aaff` is for blue text (4.7–7:1 on every dark surface). The dark Delete button uses `#d70015` (5.38:1 with white). Light mode is unchanged: `#0066d6` passes both ways at 5.42:1. | An axe-core scan found white-on-blue buttons at 3.6:1, blue "✓ Applied" text at 3.7:1, and the Delete button at 3.4:1 in dark mode. The M1.3 claim that the panel met AA was wrong for dark mode. |
+| §6.12 | Version tabs are at least 24px tall. | WCAG 2.2 target size (2.5.8): they were 22px. |
+| §6.10, §6.12 | The version tab ✕ is a mouse-only element hidden from assistive tech (`aria-hidden`). Keyboard and screen-reader users delete with **Delete/Backspace** on the tab, announced via `aria-keyshortcuts="Delete"`. | axe flagged a critical ARIA error: a button inside the tablist, where only tabs are allowed. |
+| §12 | New e2e tests: (1) every token in each example visibly changes the page (pixel comparison per token; proven to catch an unused token); (2) axe-core finds no WCAG 2.2 A/AA violations in the panel in light or dark mode across all tabs and states; (3) a keyboard-only walk reaches every control with a visible focus indicator. `@axe-core/playwright` is added as an e2e dev dependency. | Evidence for the two acceptance criteria that had none. |
