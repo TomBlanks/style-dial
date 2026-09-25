@@ -6,7 +6,7 @@ import { createSaver, load, type UiState } from "./state/persist";
 import { Store } from "./state/store";
 import { mountError, mountPanel, type PanelHandle } from "./ui/panel";
 
-const PREFIX = "[design-tweaker]";
+const PREFIX = "[style-dial]";
 
 let mounted: { panel: PanelHandle; writer?: OverrideWriter; stop?: () => void } | null = null;
 

@@ -12,7 +12,7 @@ import { h, nextId, svg } from "./dom";
 import { ICONS } from "./icons";
 import { CSS } from "./styles";
 
-export const HOST_TAG = "design-tweaker-root";
+export const HOST_TAG = "style-dial-root";
 
 export type { TabId };
 
@@ -117,7 +117,7 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
 
   // Top row: versions · + · minimise.
   const minimise = h("button", {
-    type: "button", class: "icon-btn", "aria-label": "Minimise Design Tweaker", "data-tip": "Minimise (⌥⇧T)",
+    type: "button", class: "icon-btn", "aria-label": "Minimise Style Dial", "data-tip": "Minimise (⌥⇧T)",
     onclick: () => collapse.set(false, true),
   }, svg(ICONS.minimise));
   const versions = buildVersionBar(store, minimise);
@@ -224,7 +224,7 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
     }
   }
 
-  const win = h("section", { class: "win", "aria-label": "Design Tweaker" },
+  const win = h("section", { class: "win", "aria-label": "Style Dial" },
     versions.row, versions.confirmRow, tabs.el, body, footer, manual, toast);
 
   // Undo / redo shortcuts, only while focus is inside the panel. Text fields keep their own undo.
@@ -267,7 +267,7 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
 
     launcher.badge.hidden = changes === 0;
     launcher.badge.textContent = String(changes);
-    launcher.button.setAttribute("aria-label", `Open Design Tweaker${changes ? ` (${changes} unsaved change${changes === 1 ? "" : "s"})` : ""}`);
+    launcher.button.setAttribute("aria-label", `Open Style Dial${changes ? ` (${changes} unsaved change${changes === 1 ? "" : "s"})` : ""}`);
   }
 
   // Checks re-run after every change or version switch, debounced to 100ms (spec §7).
@@ -306,11 +306,11 @@ export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
 export function mountError(message: string): PanelHandle {
   const { host, root } = createHost();
   const minimise = h("button", {
-    type: "button", class: "icon-btn", "aria-label": "Minimise Design Tweaker", "data-tip": "Minimise (⌥⇧T)",
+    type: "button", class: "icon-btn", "aria-label": "Minimise Style Dial", "data-tip": "Minimise (⌥⇧T)",
     onclick: () => collapse.set(false, true),
   }, svg(ICONS.minimise));
-  const win = h("section", { class: "win", "aria-label": "Design Tweaker", style: "height:auto;min-height:0" },
-    h("div", { class: "top" }, h("strong", { text: "Design Tweaker" }), h("span", { class: "spacer" }), minimise),
+  const win = h("section", { class: "win", "aria-label": "Style Dial", style: "height:auto;min-height:0" },
+    h("div", { class: "top" }, h("strong", { text: "Style Dial" }), h("span", { class: "spacer" }), minimise),
     h("div", { class: "body error-msg", role: "alert" },
       h("strong", { text: "The tweak config couldn't be loaded." }),
       h("code", { text: message }),
@@ -321,7 +321,7 @@ export function mountError(message: string): PanelHandle {
   launcher.badge.hidden = false;
   launcher.badge.classList.add("error");
   launcher.badge.textContent = "!";
-  launcher.button.setAttribute("aria-label", "Open Design Tweaker (config error)");
+  launcher.button.setAttribute("aria-label", "Open Style Dial (config error)");
   root.append(launcher.button, win);
   const collapse = wireCollapse(launcher.button, win, () => minimise);
   collapse.set(true, false);

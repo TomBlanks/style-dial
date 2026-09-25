@@ -20,7 +20,7 @@ export interface Saved {
   ui: UiState;
 }
 
-export const storageKey = (config: TweakConfig) => `design-tweaker:v1:${config.id}`;
+export const storageKey = (config: TweakConfig) => `style-dial:v1:${config.id}`;
 
 export const DEFAULT_UI: UiState = { expanded: true, tab: "controls", active: "A" };
 

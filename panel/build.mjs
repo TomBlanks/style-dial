@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(here, "dist/tweak-panel.js");
-const assets = resolve(here, "../skill/design-tweaker/assets");
+const assets = resolve(here, "../skill/style-dial/assets");
 // Every example gets the freshly built panel (the skill's assets are the source of truth).
 const examples = [
   { dir: resolve(here, "../examples/plain-html"), types: false },
@@ -24,7 +24,7 @@ await build({
   target: "es2020",
   minify: true,
   legalComments: "none",
-  banner: { js: "/* Design Tweaker panel v1 — development only. Do not edit; copy verbatim. */" },
+  banner: { js: "/* Style Dial panel v1 — development only. Do not edit; copy verbatim. */" },
 });
 
 mkdirSync(assets, { recursive: true });

@@ -1,15 +1,15 @@
 ---
-name: design-tweaker
+name: style-dial
 description: Builds websites on a design-token contract and installs a live
   tweak panel (sliders, colour pickers, design checks, tailored suggestions and
   A/B/C versions) for fine-tuning during development. Use whenever the user asks
   to design, build, restyle or mock up a website, landing page, portfolio or
   web UI in plain HTML/CSS, React (Vite) or Next.js, even if they don't mention
   a panel. Also use whenever the user pastes a block starting with
-  "Apply these design tweaks (design-tweaker v1)", or says the design is final.
+  "Apply these style tweaks (style-dial v1)", or says the design is final.
 ---
 
-# Design Tweaker
+# Style Dial
 
 The user fine-tunes the design in a floating panel, clicks **Copy changes**, and pastes the result back here. Your job is to build sites the panel can drive, and to apply what comes back.
 
@@ -26,7 +26,7 @@ The user fine-tunes the design in a floating panel, clicks **Copy changes**, and
 7. **Check your work** against the checklist at the end of `references/config-schema.md`.
 8. **Tell the user** in one or two sentences: the panel is in the bottom-right corner in development (⌥⇧T toggles it), and **Copy changes** gives them text to paste back here.
 
-## When the user pastes "Apply these design tweaks (design-tweaker v1)"
+## When the user pastes "Apply these style tweaks (style-dial v1)"
 
 Follow `references/applying-and-finalising.md`: update only the listed token values in the tokens file, update the matching config defaults, then refresh the suggestions. Don't touch anything else.
 

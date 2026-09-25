@@ -22,7 +22,7 @@ describe("window.TweakPanel", () => {
     const c = sampleConfig();
     c.tokens[0].default = 99;
     window.TweakPanel.mount(c);
-    expect(warn.mock.calls.some(([m]) => String(m).startsWith("[design-tweaker] Token --text-body: default 99"))).toBe(true);
+    expect(warn.mock.calls.some(([m]) => String(m).startsWith("[style-dial] Token --text-body: default 99"))).toBe(true);
   });
   it("unmount removes the panel and the override style element", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -52,7 +52,7 @@ describe("persistence through mount / unmount (a page reload)", () => {
     root().querySelector<HTMLButtonElement>('[aria-label="Try a new version"]')!.click();
     slider().value = "1.3125"; slider().dispatchEvent(new Event("input")); slider().dispatchEvent(new Event("change"));
     root().querySelectorAll<HTMLButtonElement>('.tabs [role="tab"]')[1].click();
-    root().querySelector<HTMLButtonElement>('[aria-label="Minimise Design Tweaker"]')!.click();
+    root().querySelector<HTMLButtonElement>('[aria-label="Minimise Style Dial"]')!.click();
     window.TweakPanel.unmount(); // flushes the pending save
 
     window.TweakPanel.mount(sampleConfig());

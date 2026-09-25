@@ -98,5 +98,5 @@ interface TweakConfig {
 - [ ] Tailwind: tokens are in `@theme static`, not `@theme` or `@theme inline`.
 - [ ] The original design passes the checks (see the end of `token-contract.md`).
 - [ ] 3–5 suggestions that follow `suggestion-guide.md`.
-- [ ] The panel is installed exactly as `framework-setup.md` says, inside `design-tweaker:start` / `design-tweaker:end` markers, and `tweak-panel.js` is an unmodified copy.
+- [ ] The panel is installed exactly as `framework-setup.md` says, inside `style-dial:start` / `style-dial:end` markers, and `tweak-panel.js` is an unmodified copy.
 - [ ] Framework projects: the production build still passes.

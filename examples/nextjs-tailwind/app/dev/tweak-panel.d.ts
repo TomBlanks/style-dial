@@ -1,4 +1,4 @@
-// Types for the Design Tweaker panel global (development only).
+// Types for the Style Dial panel global (development only).
 export {};
 
 declare global {

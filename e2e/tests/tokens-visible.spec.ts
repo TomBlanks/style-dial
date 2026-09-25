@@ -31,9 +31,9 @@ for (const ex of EXAMPLES) {
     await page.goto(ex.url);
     await page.evaluate(() => localStorage.clear());
     await page.reload();
-    await page.locator("design-tweaker-root").waitFor();
+    await page.locator("style-dial-root").waitFor();
     // Hide the panel so only the site is compared, and use a tall viewport to include every section.
-    await page.addStyleTag({ content: "design-tweaker-root { display: none !important; }" });
+    await page.addStyleTag({ content: "style-dial-root { display: none !important; }" });
     const height = await page.evaluate(() => document.documentElement.scrollHeight);
     await page.setViewportSize({ width: 1280, height: Math.min(height + 200, 6000) });
     await page.waitForTimeout(300);

@@ -3,11 +3,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { URLS } from "../playwright.config";
 
-const inPanel = (page: Page, sel: string) => page.locator(`design-tweaker-root ${sel}`);
+const inPanel = (page: Page, sel: string) => page.locator(`style-dial-root ${sel}`);
 
 async function scan(page: Page, label: string) {
   const results = await new AxeBuilder({ page })
-    .include("design-tweaker-root")
+    .include("style-dial-root")
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   const problems = results.violations.map((v) => `${label}: ${v.id} (${v.impact}) ×${v.nodes.length}: ${v.nodes[0].target.join(" ")} ${v.nodes[0].failureSummary?.split("\n")[1] ?? ""}`);
@@ -46,7 +46,7 @@ for (const scheme of ["light", "dark"] as const) {
     await page.keyboard.press("Escape");
     await inPanel(page, ".versions [role=tab]").first().click();
     problems.push(...await scan(page, "Original view"));
-    await inPanel(page, '[aria-label="Minimise Design Tweaker"]').click();
+    await inPanel(page, '[aria-label="Minimise Style Dial"]').click();
     problems.push(...await scan(page, "Minimised"));
     expect(problems).toEqual([]);
   });
@@ -62,7 +62,7 @@ test("the whole panel is keyboard operable, with a visible focus indicator", asy
   await page.keyboard.press("Alt+Shift+KeyT");
   await expect(inPanel(page, ".launcher")).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(inPanel(page, '[aria-label="Minimise Design Tweaker"]')).toBeFocused();
+  await expect(inPanel(page, '[aria-label="Minimise Style Dial"]')).toBeFocused();
 
   // Make a change first so Undo, Reset all and Copy are enabled (disabled buttons rightly skip focus).
   await inPanel(page, 'input[type="range"]').first().focus();
@@ -74,7 +74,7 @@ test("the whole panel is keyboard operable, with a visible focus indicator", asy
   await inPanel(page, ".versions [role=tab][aria-selected=true]").focus();
   for (let i = 0; i < 150; i++) {
     const info = await page.evaluate((n) => {
-      const el = document.querySelector("design-tweaker-root")!.shadowRoot!.activeElement as HTMLElement | null;
+      const el = document.querySelector("style-dial-root")!.shadowRoot!.activeElement as HTMLElement | null;
       if (!el) return null;
       if (el.dataset.walk) return { repeat: true } as const;
       el.dataset.walk = String(n);
@@ -92,7 +92,7 @@ test("the whole panel is keyboard operable, with a visible focus indicator", asy
     await page.keyboard.press("Tab");
   }
   const joined = seen.join(" | ");
-  for (const needle of ["button:Try a new version", "button:Minimise Design Tweaker", "button:Controls", "summary:Typography", "input:range", "input:Heading 1 value in rem", "input:Pick Accent colour", "button:Undo", "button:Reset all", "button:Copy 1 change"]) {
+  for (const needle of ["button:Try a new version", "button:Minimise Style Dial", "button:Controls", "summary:Typography", "input:range", "input:Heading 1 value in rem", "input:Pick Accent colour", "button:Undo", "button:Reset all", "button:Copy 1 change"]) {
     expect(joined, `expected Tab to reach ${needle}`).toContain(needle);
   }
   expect(noIndicator, "focused elements without a visible focus indicator").toEqual([]);

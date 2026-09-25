@@ -5,8 +5,8 @@
 The user pastes text like this (possibly with other words around it):
 
 ````
-```design-tweaks
-Apply these design tweaks (design-tweaker v1)
+```style-tweaks
+Apply these style tweaks (style-dial v1)
 version: B
 tokens-file: src/index.css
 --text-h1: 3.75rem;
@@ -40,7 +40,7 @@ There's no `fonts:` line in v1 (the panel doesn't change fonts). If the user ask
 
 When the user says the design is final (or asks to remove the panel):
 
-1. **Remove everything between the markers** (including the markers) in every file: `<!-- design-tweaker:start -->` … `<!-- design-tweaker:end -->`, `// design-tweaker:start` … `// design-tweaker:end`, and `{/* design-tweaker:start */}` … `{/* design-tweaker:end */}`.
+1. **Remove everything between the markers** (including the markers) in every file: `<!-- style-dial:start -->` … `<!-- style-dial:end -->`, `// style-dial:start` … `// style-dial:end`, and `{/* style-dial:start */}` … `{/* style-dial:end */}`.
 2. **Delete the panel files and the config:** `tweak-panel.js`, `tweak-panel.d.ts`, `tweak.config.json`, and for Next.js `app/dev/DevTweakPanel.tsx`. Remove the `dev/` folder if it's now empty.
 3. **Keep the tokens.** They're good practice. For Tailwind, `@theme static` can stay as it is.
 4. Next.js: if the layout became `async` only for the panel, it may stay `async` (harmless) or be changed back.

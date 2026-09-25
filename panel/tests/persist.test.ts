@@ -82,8 +82,8 @@ describe("load / save", () => {
   beforeEach(() => localStorage.clear());
   afterEach(() => vi.restoreAllMocks());
 
-  it("uses the key design-tweaker:v1:<id> and writes the reconciled result back", () => {
-    expect(storageKey(v1)).toBe("design-tweaker:v1:sample-site");
+  it("uses the key style-dial:v1:<id> and writes the reconciled result back", () => {
+    expect(storageKey(v1)).toBe("style-dial:v1:sample-site");
     localStorage.setItem(storageKey(v1), JSON.stringify(stored({ A: { ...d1, "--text-h1": 4 } })));
     const s = load(v1);
     expect(s.versions.A!["--text-h1"]).toBe(4);

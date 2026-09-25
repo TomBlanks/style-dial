@@ -4,7 +4,7 @@ import type { Token, TweakConfig } from "./config/types";
 import { formatNumber } from "./format";
 import { changedKeys, type Value, type Values } from "./state/values";
 
-export const STYLE_ID = "design-tweaker-overrides";
+export const STYLE_ID = "style-dial-overrides";
 
 export function cssValue(token: Token, value: Value): string {
   if (token.type === "color") return String(value);

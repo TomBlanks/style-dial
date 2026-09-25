@@ -4,9 +4,9 @@ import type { TweakConfig } from "./config/types";
 import { cssValue } from "./overrides";
 import { changedKeys, type Values } from "./state/values";
 
-/** The design-tweaks block for one version: only tokens that differ from the defaults, in config order. */
+/** The style-tweaks block for one version: only tokens that differ from the defaults, in config order. */
 export function buildExport(config: TweakConfig, version: string, values: Values, defaults: Values): string {
-  const lines = ["```design-tweaks", "Apply these design tweaks (design-tweaker v1)", `version: ${version}`, `tokens-file: ${config.tokensFile}`];
+  const lines = ["```style-tweaks", "Apply these style tweaks (style-dial v1)", `version: ${version}`, `tokens-file: ${config.tokensFile}`];
   for (const key of changedKeys(config, values, defaults)) {
     const token = config.tokens.find((t) => t.var === key)!;
     lines.push(`${key}: ${cssValue(token, values[key])};`);

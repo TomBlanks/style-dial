@@ -11,17 +11,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // design-tweaker:start
+  // style-dial:start
   // Imported only in development so production builds contain no panel code at all.
   const DevTweakPanel = process.env.NODE_ENV === "development" ? (await import("./dev/DevTweakPanel")).default : null;
-  // design-tweaker:end
+  // style-dial:end
   return (
     <html lang="en" className={`${heading.variable} ${body.variable}`}>
       <body>
         {children}
-        {/* design-tweaker:start */}
+        {/* style-dial:start */}
         {DevTweakPanel && <DevTweakPanel />}
-        {/* design-tweaker:end */}
+        {/* style-dial:end */}
       </body>
     </html>
   );

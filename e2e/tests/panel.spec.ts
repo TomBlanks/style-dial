@@ -12,8 +12,8 @@ const PROD = [
   { name: "Next.js + Tailwind (production build)", url: URLS.nextStart },
 ];
 
-const panel = (page: Page) => page.locator("design-tweaker-root");
-const inPanel = (page: Page, sel: string) => page.locator(`design-tweaker-root ${sel}`);
+const panel = (page: Page) => page.locator("style-dial-root");
+const inPanel = (page: Page, sel: string) => page.locator(`style-dial-root ${sel}`);
 
 async function open(page: Page, url: string) {
   await page.goto(url);
@@ -35,7 +35,7 @@ for (const ex of DEV) {
   test.describe(ex.name, () => {
     test("panel mounts in development, with no console errors from the panel", async ({ page }) => {
       const problems: string[] = [];
-      page.on("console", (m) => { if (m.text().includes("[design-tweaker]")) problems.push(m.text()); });
+      page.on("console", (m) => { if (m.text().includes("[style-dial]")) problems.push(m.text()); });
       page.on("pageerror", (e) => problems.push(e.message));
       await open(page, ex.url);
       await expect(inPanel(page, '[role="tab"]', ).filter({ hasText: "Controls" })).toBeVisible();
@@ -49,7 +49,7 @@ for (const ex of DEV) {
       await expect.poll(() => h1Size(page)).toBeGreaterThan(before);
     });
 
-    test("Copy changes produces the exact design-tweaks block", async ({ page }) => {
+    test("Copy changes produces the exact style-tweaks block", async ({ page }) => {
       await open(page, ex.url);
       const h1 = inPanel(page, ".num input").nth(1);
       const start = parseFloat(await h1.inputValue());
@@ -58,8 +58,8 @@ for (const ex of DEV) {
       await expect(inPanel(page, ".toast")).toHaveText("Copied — paste it into Claude Code");
       const text = await page.evaluate(() => navigator.clipboard.readText());
       expect(text).toBe([
-        "```design-tweaks",
-        "Apply these design tweaks (design-tweaker v1)",
+        "```style-tweaks",
+        "Apply these style tweaks (style-dial v1)",
         "version: A",
         `tokens-file: ${ex.tokensFile}`,
         `--text-h1: ${start + 0.25}rem;`,
@@ -97,8 +97,8 @@ for (const ex of PROD) {
     expect(await page.evaluate(() => "TweakPanel" in window)).toBe(false);
     expect(scripts.length).toBeGreaterThan(0);
     for (const js of scripts) {
-      expect(js).not.toContain("design-tweaker-root");
-      expect(js).not.toContain("Apply these design tweaks");
+      expect(js).not.toContain("style-dial-root");
+      expect(js).not.toContain("Apply these style tweaks");
     }
   });
 }
@@ -122,5 +122,5 @@ test("updating a config default (as Claude would) clears the matching override a
   await expect(inPanel(page, ".num input").nth(1)).toHaveValue("3.75");
   await expect(inPanel(page, ".copy")).toHaveText("Copy changes"); // 0 changes: the override is gone
   await expect(inPanel(page, ".badge")).toBeHidden();
-  expect(await page.locator("#design-tweaker-overrides").evaluate((e) => e.textContent ?? "").catch(() => "")).toBe("");
+  expect(await page.locator("#style-dial-overrides").evaluate((e) => e.textContent ?? "").catch(() => "")).toBe("");
 });

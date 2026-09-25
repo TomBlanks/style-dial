@@ -1,10 +1,10 @@
-# Design Tweaker
+# Style Dial
 
 **Stop describing design changes to Claude. Drag them.**
 
-Design Tweaker is a Claude Code skill and a tiny in-browser panel. Claude builds your site with every design value as a live token, and puts a panel in the corner of the page with sliders, colour pickers, design checks and tailored suggestions. You tune the design by eye, click **Copy changes**, paste the result into Claude Code, and the edits go straight into your source.
+Style Dial is a Claude Code skill and a tiny in-browser panel. Claude builds your site with every design value as a live token, and puts a panel in the corner of the page with sliders, colour pickers, design checks and tailored suggestions. You tune the design by eye, click **Copy changes**, paste the result into Claude Code, and the edits go straight into your source.
 
-![The Design Tweaker panel open on a website, with sliders for text width and corner radius and colour pickers](docs/images/hero.png)
+![The Style Dial panel open on a website, with sliders for text width and corner radius and colour pickers](docs/images/hero.png)
 
 ---
 
@@ -19,7 +19,7 @@ Fine-tuning an AI-built site through chat goes like this:
 
 Every round trip means waiting, re-reading a diff and reloading the page. Visual adjustments belong on a slider, not in a prompt.
 
-With Design Tweaker you:
+With Style Dial you:
 
 - **See it instantly.** Every change repaints the page as you drag. There's no rebuild and no waiting.
 - **Stay in control.** Nothing touches your code until you paste the changes back. Try a direction, hate it, undo.
@@ -32,8 +32,8 @@ With Design Tweaker you:
 3. **Open the site.** The panel sits in the bottom-right corner. Drag, pick, try versions, fix what the checks flag.
 4. **Click Copy changes and paste into Claude Code:**
    ````
-   ```design-tweaks
-   Apply these design tweaks (design-tweaker v1)
+   ```style-tweaks
+   Apply these style tweaks (style-dial v1)
    version: B
    tokens-file: src/index.css
    --text-h1: 3.75rem;
@@ -77,12 +77,12 @@ When Claude builds the site, it also writes 3–5 design ideas specific to it, l
 
 ## Install
 
-The skill lives in [`skill/design-tweaker`](skill/design-tweaker). Put it in your Claude Code skills folder:
+The skill lives in [`skill/style-dial`](skill/style-dial). Put it in your Claude Code skills folder:
 
 ```sh
 git clone https://github.com/TomBlanks/styledial.git
 mkdir -p ~/.claude/skills
-cp -R styledial/skill/design-tweaker ~/.claude/skills/
+cp -R styledial/skill/style-dial ~/.claude/skills/
 ```
 
 (Use `ln -s` instead of `cp -R` if you'd like updates to the clone to apply automatically.)
@@ -117,15 +117,6 @@ Then open the site in development, tweak, copy, paste. When you're happy:
 | Next.js (App Router) | `next dev` only | **Not shipped**: no panel code in `next build` output |
 
 Each works with or without **Tailwind CSS v4**. Tokens go in `@theme static`, so Tailwind utilities like `bg-accent` and `text-h1` stay live.
-
-## Built to stay out of the way
-
-- **Development only.** Automated tests check that production builds contain no panel element, no panel code and no config.
-- **Can't break your styles.** The panel lives in a Shadow DOM. It was tested against deliberately hostile site CSS: site styles can't reach it, and its styles can't reach your site.
-- **Never touches your elements.** Changes go into one unlayered `<style>` element that beats Tailwind's layered theme and plain `:root` blocks. That's it.
-- **Tiny and dependency-free.** One 17.8 KB (gzipped) script with no runtime dependencies. Claude copies it byte for byte.
-- **Accessible.** It's fully keyboard operable, follows the WAI-ARIA tabs pattern and respects reduced motion. An axe-core scan finds no WCAG 2.2 A/AA issues in light or dark mode.
-- **Your tweaks persist.** Versions are saved per project in `localStorage` and reconciled with your code on every load, so an applied version drops to 0 changes while your other versions stay put.
 
 ## Repository layout
 
@@ -163,7 +154,7 @@ cd e2e && npm install && npm test
 
 ## Status and what's next
 
-**v1 is complete.** It meets every acceptance criterion in the [spec](design-tweaker-spec.md). Every place the build departs from the spec, and why, is written down in [DECISIONS.md](DECISIONS.md).
+**v1 is complete.** Read the full [spec here](design-tweaker-spec.md).
 
 On the roadmap:
 - **Apply directly to files**, so there's no copy and paste.

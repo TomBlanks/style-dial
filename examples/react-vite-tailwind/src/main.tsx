@@ -9,11 +9,11 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 
-// design-tweaker:start
+// style-dial:start
 if (import.meta.env.DEV) {
   Promise.all([
     import("./dev/tweak-panel.js"),
     import("./dev/tweak.config.json"),
   ]).then(([, config]) => window.TweakPanel.mount(config.default));
 }
-// design-tweaker:end
+// style-dial:end

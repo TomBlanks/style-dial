@@ -11,8 +11,8 @@ describe("buildExport", () => {
     const v = { ...d, "--color-accent": "#b4380a", "--space-section": 112, "--text-h1": 3.75 };
     expect(buildExport(config, "B", v, d)).toBe(
       [
-        "```design-tweaks",
-        "Apply these design tweaks (design-tweaker v1)",
+        "```style-tweaks",
+        "Apply these style tweaks (style-dial v1)",
         "version: B",
         "tokens-file: src/index.css",
         "--text-h1: 3.75rem;",

@@ -49,7 +49,7 @@ describe("shell", () => {
     expect($$('input[type="color"]')).toHaveLength(3);
   });
   it("collapses and expands with the minimise button, launcher and Alt+Shift+T", () => {
-    $<HTMLButtonElement>('[aria-label="Minimise Design Tweaker"]').click();
+    $<HTMLButtonElement>('[aria-label="Minimise Style Dial"]').click();
     expect($(".win").hidden).toBe(true);
     expect($(".launcher").hidden).toBe(false);
     $<HTMLButtonElement>(".launcher").click();
