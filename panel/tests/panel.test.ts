@@ -19,7 +19,7 @@ function type(input: HTMLInputElement, text: string) {
 
 beforeEach(() => {
   store = new Store(validSample());
-  panel = mountPanel(store);
+  panel = mountPanel(store, { ui: { expanded: true, tab: "controls", active: "A" }, onUiChange: () => {} });
 });
 afterEach(() => {
   panel?.destroy();

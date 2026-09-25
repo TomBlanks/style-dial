@@ -208,6 +208,23 @@ input:disabled { opacity: .45; cursor: default; }
 .confirm-row { gap: 6px; font-size: 12px; }
 .confirm-text { flex: 1; line-height: 1.3; padding-left: 4px; }
 .copy { height: 28px; padding: 0 14px; font-size: 12.5px; }
+.toast {
+  position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); background: var(--tip-bg); color: var(--tip-text);
+  padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; white-space: nowrap;
+  box-shadow: 0 4px 16px rgb(0 0 0 / .2); pointer-events: none; opacity: 0; transition: opacity .15s;
+}
+.toast.show { opacity: 1; }
+.manual {
+  position: absolute; inset: 0; z-index: 5; background: var(--bg); border-radius: 14px; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.manual-head { display: flex; align-items: center; justify-content: space-between; }
+.manual p { margin: 0; color: var(--text-2); font-size: 12px; }
+.manual-text {
+  flex: 1; resize: none; border: 0; border-radius: 8px; padding: 8px; background: var(--fill); color: var(--text);
+  font: 11.5px/1.45 ui-monospace, "SF Mono", Menlo, monospace; outline: none;
+}
+.manual-text:focus { box-shadow: 0 0 0 2px var(--accent); }
 .note { display: flex; gap: 8px; align-items: center; color: var(--text-2); font-size: 12px; padding: 0 4px; flex: 1; }
 
 /* Phone widths: full-width panel with 8px margins (spec §6.4). Kept last so it wins. */

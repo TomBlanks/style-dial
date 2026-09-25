@@ -1,6 +1,8 @@
 // The panel shell: Shadow DOM host, launcher, top row, tabs, body, footer (spec §6.2, §6.4).
 
 import type { Store } from "../state/store";
+import type { TabId, UiState } from "../state/persist";
+import { buildExport, copyText } from "../export";
 import { buildControls } from "./controls";
 import { buildVersionBar } from "./versions";
 import { h, nextId, svg } from "./dom";
@@ -9,7 +11,12 @@ import { CSS } from "./styles";
 
 export const HOST_TAG = "design-tweaker-root";
 
-export type TabId = "controls" | "checks" | "suggestions";
+export type { TabId };
+
+export interface PanelOptions {
+  ui: UiState;
+  onUiChange(ui: Pick<UiState, "expanded" | "tab">): void;
+}
 
 export interface PanelHandle {
   destroy(): void;
@@ -79,13 +86,14 @@ function launcherButton(onOpen: () => void) {
 }
 
 /** Toggles open/closed with the button, the minimise control and Alt+Shift+T; moves focus sensibly. */
-function wireCollapse(launcher: HTMLButtonElement, win: HTMLElement, focusOnOpen: () => HTMLElement) {
+function wireCollapse(launcher: HTMLButtonElement, win: HTMLElement, focusOnOpen: () => HTMLElement, onChange?: (open: boolean) => void) {
   let expanded = true;
   const set = (open: boolean, moveFocus: boolean) => {
     expanded = open;
     win.hidden = !open;
     launcher.hidden = open;
     if (moveFocus) (open ? focusOnOpen() : launcher).focus();
+    onChange?.(open);
   };
   const onKey = (e: KeyboardEvent) => {
     if (e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && e.code === "KeyT") {
@@ -97,10 +105,12 @@ function wireCollapse(launcher: HTMLButtonElement, win: HTMLElement, focusOnOpen
   return { set, isExpanded: () => expanded, dispose: () => window.removeEventListener("keydown", onKey) };
 }
 
-export function mountPanel(store: Store): PanelHandle {
-  const { host, root } = createHost();
+export function mountPanel(store: Store, opts: PanelOptions): PanelHandle {
+  const { host, shadow, root } = createHost();
   const config = store.config;
-  let tab: TabId = "controls";
+  let tab: TabId = opts.ui.tab;
+  let expanded = opts.ui.expanded;
+  const saveUi = () => opts.onUiChange({ expanded, tab });
 
   // Top row: versions · + · minimise.
   const minimise = h("button", {
@@ -119,7 +129,7 @@ export function mountPanel(store: Store): PanelHandle {
       { id: "checks", content: ["Checks", checksCount] },
       { id: "suggestions", content: ["Suggestions"] },
     ],
-    (id) => { tab = id; render(); },
+    (id) => { tab = id; saveUi(); render(); },
   );
   const controls = buildControls(config.tokens, {
     set: (name, value) => store.set(name, value),
@@ -146,7 +156,7 @@ export function mountPanel(store: Store): PanelHandle {
   const undo = h("button", { type: "button", class: "icon-btn", "aria-label": "Undo", "data-tip": `Undo (${mod}Z)`, "data-tip-pos": "start", onclick: () => store.undo() }, svg(ICONS.undo));
   const redo = h("button", { type: "button", class: "icon-btn", "aria-label": "Redo", "data-tip": `Redo (${mod}${mod === "⌘" ? "⇧" : "Shift+"}Z)`, onclick: () => store.redo() }, svg(ICONS.redo));
   const resetAll = h("button", { type: "button", class: "icon-btn", "aria-label": "Reset all", "data-tip": "Reset all", onclick: () => confirmReset(true) }, svg(ICONS.resetAll));
-  const copy = h("button", { type: "button", class: "btn primary copy", disabled: true });
+  const copy = h("button", { type: "button", class: "btn primary copy", onclick: () => doCopy() });
   const actionsRow = h("div", { class: "footer-row" },
     undo, redo, resetAll, h("span", { class: "spacer" }), copy);
   const cancelReset = h("button", { type: "button", class: "btn", text: "Cancel", onclick: () => confirmReset(false, true) });
@@ -167,8 +177,43 @@ export function mountPanel(store: Store): PanelHandle {
     else if (restoreFocus) (resetAll.disabled ? undo : resetAll).focus(); // after Reset, Undo is the natural next step
   }
 
+  // Copy changes: toast on success, a selectable box if every clipboard method fails.
+  const toast = h("div", { class: "toast", role: "status", "aria-live": "polite" });
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+  function showToast(message: string) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.classList.remove("show"); toast.textContent = ""; }, 3000);
+  }
+  const manualText = h("textarea", { class: "manual-text", readonly: true, "aria-label": "Changes to copy", spellcheck: "false" });
+  const manualClose = h("button", { type: "button", class: "btn", text: "Close", onclick: () => closeManual() });
+  const manual = h("div", { class: "manual", hidden: true, role: "dialog", "aria-label": "Copy this manually" },
+    h("div", { class: "manual-head" }, h("strong", { text: "Copy this manually" }), manualClose),
+    h("p", { text: "Copying to the clipboard didn't work. Select the text below, copy it, and paste it into Claude Code." }),
+    manualText,
+  );
+  manual.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); closeManual(); } });
+  function closeManual() { manual.hidden = true; copy.focus(); }
+
+  async function doCopy() {
+    store.commit();
+    const state = store.getState();
+    if (state.active === "original" || store.changes().length === 0) return;
+    const text = buildExport(config, state.active, store.shownValues(), state.defaults);
+    const result = await copyText(text, shadow);
+    if (result === "failed") {
+      manualText.value = text;
+      manual.hidden = false;
+      manualText.focus();
+      manualText.select();
+    } else {
+      showToast("Copied — paste it into Claude Code");
+    }
+  }
+
   const win = h("section", { class: "win", "aria-label": "Design Tweaker" },
-    versions.row, versions.confirmRow, tabs.el, body, footer);
+    versions.row, versions.confirmRow, tabs.el, body, footer, manual, toast);
 
   // Undo / redo shortcuts, only while focus is inside the panel. Text fields keep their own undo.
   win.addEventListener("keydown", (e) => {
@@ -182,8 +227,8 @@ export function mountPanel(store: Store): PanelHandle {
   });
   const launcher = launcherButton(() => collapse.set(true, true));
   root.append(launcher.button, win);
-  const collapse = wireCollapse(launcher.button, win, () => minimise);
-  collapse.set(true, false);
+  const collapse = wireCollapse(launcher.button, win, () => minimise, (open) => { expanded = open; saveUi(); });
+  collapse.set(expanded, false);
 
   function render() {
     const state = store.getState();
@@ -204,6 +249,7 @@ export function mountPanel(store: Store): PanelHandle {
     redo.disabled = !store.canRedo();
     resetAll.disabled = changes === 0;
     copy.textContent = changes === 0 ? "Copy changes" : `Copy ${changes} change${changes === 1 ? "" : "s"}`;
+    copy.disabled = changes === 0;
 
     launcher.badge.hidden = changes === 0;
     launcher.badge.textContent = String(changes);
@@ -216,6 +262,7 @@ export function mountPanel(store: Store): PanelHandle {
   return {
     destroy() {
       stop();
+      clearTimeout(toastTimer);
       collapse.dispose();
       host.remove();
     },

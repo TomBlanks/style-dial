@@ -75,3 +75,12 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §6.10 | Deleting the version that's showing switches to the nearest remaining version: the one to its left, or failing that the one to its right. Deleting a version also deletes its history, so re-creating a letter starts with an empty history. | Keeps you on an editable version and avoids surprise undo steps from a deleted version. |
 | §6.10 | **+** when Original is showing creates a copy of the defaults. | Original is what's showing, and the spec says to copy the active view. |
 | §6.10, §6.12 | Keyboard: arrow keys, Home and End move between version tabs. **Delete** or **Backspace** on a focused version tab opens the delete confirmation. The ✕ also shows while the selected tab has keyboard focus. | Makes deleting fully keyboard-operable, since the ✕ is otherwise hover-only. |
+
+## M2.3 build notes (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §9 | Only committed values are saved. An unfinished slider drag isn't written until it's released. The open/closed state, the tab and the active view (including Original) are saved with the versions. | "Storage is updated whenever the committed state changes" (§9). The active view is restored so a reload drops you back where you were. |
+| §9 | Reconciliation runs token by token. It also repairs stored values: out-of-range numbers are clamped, and a wrong type or invalid hex falls back to the default. Unreadable storage gives a fresh Version A. | Stored data can go stale when the config's ranges or types change. |
+| §6.11 | Clicking **Copy changes** first commits any unfinished edit, so the copied text matches what's on screen. | Keeps the export and the page in sync. |
+| §6.11 | The temporary textarea used by the `execCommand` fallback is created inside the panel's shadow root. If both methods fail, a "Copy this manually" box covers the panel with the text pre-selected; Close or Escape dismisses it. | The site's DOM is never touched. The box is always readable at the panel's size. |

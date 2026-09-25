@@ -51,6 +51,11 @@ export class History {
     return this.future.length > 0 && sameValues(current, this.committed);
   }
 
+  /** The values as of the last commit. */
+  get current(): Values {
+    return this.committed;
+  }
+
   get size(): number {
     return this.past.length;
   }

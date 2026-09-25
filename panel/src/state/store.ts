@@ -1,5 +1,5 @@
 // Holds the panel's state and notifies subscribers on change.
-// Persistence is layered on in M2.3.
+// Persistence (persist.ts) supplies the initial versions and saves committedVersions().
 
 import type { TweakConfig } from "../config/types";
 import { History } from "./history";
@@ -23,11 +23,19 @@ export class Store {
   private listeners = new Set<Listener>();
   private histories = new Map<VersionId, History>();
 
-  constructor(config: TweakConfig) {
+  constructor(config: TweakConfig, initial?: { versions: Partial<Record<VersionId, Values>>; active: ViewId }) {
     this.config = config;
     const defaults = defaultValues(config);
-    this.state = { defaults, versions: { A: { ...defaults } }, active: "A" };
-    this.histories.set("A", new History(this.state.versions.A!));
+    const versions = initial?.versions ?? { A: { ...defaults } };
+    this.state = { defaults, versions, active: initial?.active ?? "A" };
+    for (const id of this.versionIds()) this.histories.set(id, new History(versions[id]!));
+  }
+
+  /** Each version's values as of its last commit (live, uncommitted edits excluded). */
+  committedVersions(): Partial<Record<VersionId, Values>> {
+    const out: Partial<Record<VersionId, Values>> = {};
+    for (const id of this.versionIds()) out[id] = this.histories.get(id)!.current;
+    return out;
   }
 
   getState(): State {
