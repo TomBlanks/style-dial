@@ -144,7 +144,7 @@ A few of the engineering decisions behind it. Every trade-off is logged in [DECI
 - **Contrast fixes that keep your colours.** The WCAG checks work in OKLCH and change only lightness, so a fixed colour keeps its hue. Every fix searches for the smallest lightness change that satisfies all the pairs a colour belongs to, so fixes never undo each other. In a stress test of 5,000 random designs, every one was cleared of colour warnings in five clicks or fewer, and the slowest check run took about 7 ms.
 - **Versions and undo.** Each version (A, B, C) stores a complete set of values with its own undo history, and survives a page refresh. A whole slider drag is a single undo step.
 - **Never shipped to production.** End-to-end tests build the Vite and Next.js examples for production and check that no panel code is in the output.
-- **Tested.** 164 Vitest unit tests cover config validation, colour maths, checks, history and export, and 21 Playwright tests run all three example stacks in dev and production, including an axe accessibility audit. CI also checks that the bundle shipped in the skill matches the source.
+- **Tested.** 165 Vitest unit tests cover config validation, colour maths, checks, history and export, and 21 Playwright tests run all three example stacks in dev and production, including an axe accessibility audit. CI also checks that the bundle shipped in the skill matches the source.
 
 ## Limitations
 
@@ -157,7 +157,7 @@ A few of the engineering decisions behind it. Every trade-off is logged in [DECI
 <summary><strong>Repository layout</strong></summary>
 
 ```
-panel/      The panel: TypeScript source, esbuild build, 164 Vitest unit tests
+panel/      The panel: TypeScript source, esbuild build, 165 Vitest unit tests
 skill/      The Claude Code skill: SKILL.md, references, and the built panel
 examples/   Plain HTML, React + Vite + Tailwind, and Next.js + Tailwind sites
 e2e/        21 Playwright tests across all three examples (dev + production)

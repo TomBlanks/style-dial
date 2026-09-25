@@ -332,6 +332,27 @@ describe("Checks tab", () => {
     expect(store.shownValues()["--measure"]).toBe(90);
     vi.useRealTimers();
   });
+  it("after a Fix, focus stays in the panel so Cmd/Ctrl+Z still undoes it", () => {
+    vi.useFakeTimers();
+    store.apply({ "--color-fg": "#bbbbbb", "--measure": 90 }); // C1 and C6, both fixable
+    vi.advanceTimersByTime(100);
+    open();
+    const first = $<HTMLButtonElement>('.check[data-id="C1"] .btn');
+    first.focus();
+    first.click();
+    vi.advanceTimersByTime(100);
+    // The clicked button is gone; focus moves to the next Fix.
+    expect(shadow().activeElement).toBe($('.check[data-id="C6"] .btn'));
+    $<HTMLButtonElement>('.check[data-id="C6"] .btn').click();
+    vi.advanceTimersByTime(100);
+    expect($$(".check")).toHaveLength(0);
+    // Nothing left to fix: focus falls back to the tab itself, still inside the panel.
+    const focused = shadow().activeElement as HTMLElement;
+    expect(focused.getAttribute("role")).toBe("tabpanel");
+    focused.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyZ", metaKey: true, bubbles: true, composed: true }));
+    expect(store.shownValues()["--measure"]).toBe(90);
+    vi.useRealTimers();
+  });
   it("Original view shows the original design's results without Fix buttons", () => {
     vi.useFakeTimers();
     const s = new Store(validSample((c) => { c.tokens[4].default = 90; })); // original measure is too long
