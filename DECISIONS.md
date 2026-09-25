@@ -155,3 +155,30 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §12 M5 | The "updating the config default clears the override" test runs on the plain-HTML example. It serves a modified `index.html` and `tokens.css` with Playwright routing, as if Claude had applied the tweak. Reconciliation itself is the same code in every framework and is unit-tested in `persist.test.ts`. | The inline config makes the change easy to simulate without editing files on disk. |
 | §12 M5 | Each test was checked against deliberately broken versions (absence check pointed at a dev server, wrong copy text) to prove the assertions can fail. | A suite that has only ever passed proves little. |
 | §6.10 | Version shortcuts are **⌥⇧1 = Original, ⌥⇧2 = A, ⌥⇧3 = B, ⌥⇧4 = C** (the spec had ⌥⇧0–3). | The user asked for this: 1 for the first tab reads more naturally than 0. |
+
+## M6.1: the skill (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §11.1 | `SKILL.md` follows the spec's draft, updated for what the build found. The description drops font pairs and mentions A/B/C versions. Step 3 chooses **one** font pair instead of 4–6 panel options. Step 6 copies the panel "byte for byte". Step 7 runs a checklist. Unsupported frameworks (not just Tailwind v3) prompt a question. | Keeps the skill in sync with the panel as built. |
+| §11.2 | `font-pairs.md` now helps Claude **choose one pair when building** instead of defining panel options. It keeps the starter list (15 pairs, all checked to exist on Google Fonts), the System stack, the no-brand-names rule, and font loading per framework. | Fonts are out of the panel in v1, but Claude still picks the site's fonts. |
+| §11.2 | `framework-setup.md` uses the **corrected** Next.js snippets (dev-only import in an async layout; `cancelled` flag), `@theme static` for Tailwind, and adds a post-install check. | The spec's originals shipped panel code to production and double-mounted (see M5.2). |
+| §4 (skill) | `token-contract.md` adds four rules the build showed were needed. (1) Every declared token must be visibly used. (2) Body text must work on both background and surface. (3) Design so the original passes every check. (4) Recommended ranges for small-size and heading-line-height, which the spec's table lacked. | Dead tokens make dead sliders. Body text on dark cards over a light page can't pass C1 and C5 at once. Checks firing on a fresh build would undermine trust. |
+| §8 (skill) | `suggestion-guide.md` adds: suggestions must be real alternatives, not fixes; move clearly away from the current value; never change fonts. | Suggestions you've gone past are hidden, so a direction is needed. Fonts are out of v1. |
+| §11.2 | `applying-and-finalising.md` says to widen a config range (never alter the value) if a pasted value falls outside it; to apply tweaks even if they fail a check and mention it; and to remove `DevTweakPanel.tsx` when finalising. | Edge cases the spec left open. |
+| §11.2 | Verified: the complete example config in `config-schema.md` is valid with 0 warnings and passes every check, with and without each suggestion applied. All three example sites pass every check on their defaults. | The docs Claude learns from must themselves follow the rules. |
+
+## M6.2 trial findings, round 1 (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §7 | **New checks C13 and C14**: muted text on the card surface (4.5:1) and the accent on the card surface (3:1), when the site has a surface token (user decision). All colour fixes now share one search for the smallest lightness change that satisfies every pair the colour belongs to. Text needs 4.5:1 on page and cards; the accent needs 3:1 on both plus 4.5:1 under its text. If none exists, page checks fix against the page, and card checks adjust the card colour against everything on it. Stress test: 5,000 random designs all clear every colour warning in at most 5 Fix clicks. Worst-case check time is about 7 ms. | Trial 1: Claude correctly told the user that muted captions (2.5:1) and the accent (2.0:1) were unreadable on gold cards, and said "the panel will warn", but the spec's checks never tested those pairs. |
+| §4 (skill) | `--radius` must cover **every rounded rectangle** (buttons, cards, inputs, images, badges). Only true circles and bars may use full rounding. Pill buttons get an extra `--radius-button` token instead of a hard-coded `rounded-full`. | Trial 2: the corner-radius slider changed the cards but not the buttons, which were hard-coded `rounded-full`. |
+| §11.2 (skill) | When applying tweaks, update the config (defaults and suggestions) **in one edit**, then confirm it's valid JSON. Describe contrast problems directly rather than promising what the panel will show. | Trial 1: the user reloaded mid-edit and saw "Config is not valid JSON" (the final file was valid). Claude also said the panel would warn about a pair the panel didn't check at the time. |
+
+## M6.2 trial findings, round 2 (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §10.3 | `DevTweakPanel` imports the config **statically** and its effect depends on `[config]`. When the config file changes (Claude applying tweaks), Next's Fast Refresh gives the component the new config, and the panel unmounts (saving) and remounts, reconciling exactly like a page reload. The component is still only imported in development, so production is unaffected. | Trial 3: after Claude applied the tweaks, the page updated but the panel kept the old defaults until a manual reload. Reproduced by editing the files on disk while the dev server ran; the fix was verified in 3 of 3 runs. Vite was already fine: a config change makes Vite reload the page. |
+| §5.3 | The "config out of date" console check runs 2 seconds after mounting (and is cancelled on unmount) instead of immediately. | During a hot update, the CSS and config arrive a moment apart, so an immediate check logged false warnings. |

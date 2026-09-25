@@ -35,9 +35,24 @@ describe("runChecks", () => {
     expect(contrast(fixed, "#ffffff")).toBeGreaterThanOrEqual(4.6);
     expect(afterFix("C1", { "--color-fg": "#aaaaaa" })).not.toContain("C1");
   });
-  it("C2 muted text contrast", () => {
-    expect(ids({ "--color-muted": "#b0aaa5" })).toEqual(["C2"]);
+  it("C2 muted text contrast (also fails on the white cards → C13); one Fix clears both", () => {
+    expect(ids({ "--color-muted": "#b0aaa5" })).toEqual(["C2", "C13"]);
     expect(afterFix("C2", { "--color-muted": "#b0aaa5" })).toEqual([]);
+  });
+  it("C13 muted text on cards: a mid-grey card fails while the page passes", () => {
+    const v = { "--color-surface": "#b8b8b8" };
+    expect(ids(v)).toContain("C13");
+    expect(ids(v)).not.toContain("C2");
+    expect(one("C13", v).message).toMatch(/^Muted text is hard to read on cards and panels \(/);
+    expect(afterFix("C13", v)).not.toContain("C13");
+  });
+  it("C14 accent on cards (3:1): fixed so it also stays visible on the page", () => {
+    const v = { "--color-surface": "#d9a88f" }; // accent #c2410c on a tan card
+    expect(ids(v)).toContain("C14");
+    const fixed = one("C14", v).fix!;
+    const after = runChecks(full, { ...d, ...v, ...fixed } as any).map((r) => r.id);
+    expect(after).not.toContain("C14");
+    expect(after).not.toContain("C3");
   });
   it("C3 accent visibility at 3:1", () => {
     expect(ids({ "--color-accent": "#fbbf99" })).toContain("C3");

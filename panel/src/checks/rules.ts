@@ -1,9 +1,9 @@
-// Design checks C1–C12 (spec §7). Pure: config + values in, results out.
+// Design checks C1–C14 (spec §7, plus C13/C14 — see DECISIONS.md). Pure: config + values in, results out.
 
 import type { Role, Token, TweakConfig } from "../config/types";
 import { clamp, formatNumber, snap } from "../format";
 import type { Values } from "../state/values";
-import { FIX_MARGIN, contrast, fixLightness, fixLightnessForAll } from "./color";
+import { FIX_MARGIN, contrast, fixLightness, fixLightnessMulti, type Constraint } from "./color";
 
 export interface CheckResult {
   id: string;
@@ -37,81 +37,7 @@ export function runChecks(config: TweakConfig, values: Values): CheckResult[] {
   const ratio = (n: number) => `${n.toFixed(1)}:1`;
 
   const out: CheckResult[] = [];
-  const fg = color("body-text");
-  const muted = color("muted-text");
-  const bg = color("background");
-  const surface = color("surface");
-  const accent = color("accent");
-  const accentText = color("accent-text");
-  // Body text sits on both the page background and the card surface, so C1 and C5 must agree:
-  // prefer one text colour that reads on both. If none exists (e.g. light page, dark cards),
-  // C1 fixes the text against the page and C5 fixes the card colour instead (no ping-pong).
-  const textOnBoth = fg && bg && surface
-    ? fixLightnessForAll(fg.value, [bg.value, surface.value], 4.5, FIX_MARGIN)
-    : undefined;
-
-  // C1 Body text contrast
-  if (fg && bg) {
-    const c = contrast(fg.value, bg.value);
-    if (c < 4.5) out.push({
-      id: "C1", severity: "warning",
-      message: `Body text is hard to read on this background (${ratio(c)}, needs 4.5:1).`,
-      fix: { [fg.token.var]: textOnBoth ?? fixLightness(fg.value, bg.value, 4.5, FIX_MARGIN) },
-    });
-  }
-  // C2 Muted text contrast
-  if (muted && bg) {
-    const c = contrast(muted.value, bg.value);
-    if (c < 4.5) out.push({
-      id: "C2", severity: "warning",
-      message: `Muted text is hard to read on this background (${ratio(c)}, needs 4.5:1).`,
-      fix: { [muted.token.var]: fixLightness(muted.value, bg.value, 4.5, FIX_MARGIN) },
-    });
-  }
-  // C3 Accent visibility
-  if (accent && bg) {
-    const c = contrast(accent.value, bg.value);
-    if (c < 3) {
-      let fixed = fixLightness(accent.value, bg.value, 3, FIX_MARGIN);
-      // Keep text on the accent readable too, if moving further the same way can do it (user decision).
-      if (accentText && contrast(accentText.value, fixed) < 4.5) {
-        const both = fixLightness(fixed, accentText.value, 4.5, FIX_MARGIN);
-        if (contrast(both, bg.value) >= 3 && contrast(both, accentText.value) >= 4.5) fixed = both;
-      }
-      out.push({
-        id: "C3", severity: "warning",
-        message: `The accent colour is hard to see on this background (${ratio(c)}, needs 3:1).`,
-        fix: { [accent.token.var]: fixed },
-      });
-    }
-  }
-  // C4 Text on accent
-  if (accentText && accent) {
-    const c = contrast(accentText.value, accent.value);
-    if (c < 4.5) {
-      const best = contrast("#ffffff", accent.value) >= contrast("#000000", accent.value) ? "#ffffff" : "#000000";
-      out.push({
-        id: "C4", severity: "warning",
-        message: `Text on the accent colour is hard to read (${ratio(c)}, needs 4.5:1).`,
-        fix: { [accentText.token.var]: best },
-      });
-    }
-  }
-  // C5 Surface text contrast
-  if (fg && surface) {
-    const c = contrast(fg.value, surface.value);
-    if (c < 4.5) {
-      const fixSurface = !!bg && !textOnBoth;
-      out.push({
-        id: "C5", severity: "warning",
-        message: `Body text is hard to read on cards and panels (${ratio(c)}, needs 4.5:1).` +
-          (fixSurface ? " No text colour works on both the page and the cards, so Fix adjusts the card colour." : ""),
-        fix: fixSurface
-          ? { [surface.token.var]: fixLightness(surface.value, fg.value, 4.5, FIX_MARGIN) }
-          : { [fg.token.var]: textOnBoth ?? fixLightness(fg.value, surface.value, 4.5, FIX_MARGIN) },
-      });
-    }
-  }
+  colourChecks(color, ratio, out);
 
   // C6 / C7 Line length
   const measure = byRole.get("measure");
@@ -228,4 +154,90 @@ function snapPx(t: Token, px: number, dir: "up" | "down"): number | undefined {
   const stepped = t.min + (dir === "up" ? Math.ceil(steps - 1e-9) : Math.floor(steps + 1e-9)) * t.step;
   const value = snap(clamp(stepped, t.min, t.max), t.min, t.max, t.step);
   return t.unit === "rem" ? value * 16 : value;
+}
+
+type Colour = { token: Token; value: string };
+
+/**
+ * Colour checks. Text and the accent sit on both the page background and the card surface, so every
+ * colour fix looks for one lightness that satisfies all the pairs the colour is part of — otherwise
+ * fixes would undo each other (see the C1/C5 and C13/C14 notes in DECISIONS.md):
+ *   body text, muted text: 4.5:1 on the background and on the surface
+ *   accent: 3:1 on the background and on the surface, and 4.5:1 under its text colour
+ * When no such colour exists, page checks fix against the page only, and card checks adjust the
+ * card colour instead (against everything that sits on it).
+ */
+function colourChecks(color: (role: Role) => Colour | undefined, ratio: (n: number) => string, out: CheckResult[]) {
+  const fg = color("body-text");
+  const muted = color("muted-text");
+  const bg = color("background");
+  const surface = color("surface");
+  const accent = color("accent");
+  const accentText = color("accent-text");
+
+  const on = (c: Colour | undefined, t: number): Constraint[] => (c ? [[c.value, t]] : []);
+  /** Constraint sets to try for a colour, most complete first. */
+  const attempts = (x: Colour, t: number): Constraint[][] => {
+    const places = [...on(bg, t), ...on(surface, t)];
+    if (x !== accent || !accentText) return [places];
+    // The accent also keeps its button text readable if it can (user decision); otherwise just visible.
+    return [[...places, ...on(accentText, 4.5)], places, [...on(bg, t), ...on(accentText, 4.5)]];
+  };
+  const joint = (x: Colour, t: number) => {
+    for (const cs of attempts(x, t)) {
+      const fixed = fixLightnessMulti(x.value, cs, FIX_MARGIN);
+      if (fixed) return fixed;
+    }
+    return null;
+  };
+  const surfaceFix = () => {
+    if (!surface) return null;
+    const cs: Constraint[] = [...on(fg, 4.5), ...on(muted, 4.5), ...on(accent, 3)];
+    return fixLightnessMulti(surface.value, cs, FIX_MARGIN);
+  };
+
+  const page = (id: string, x: Colour | undefined, t: number, what: string) => {
+    if (!x || !bg) return;
+    const c = contrast(x.value, bg.value);
+    if (c >= t) return;
+    out.push({
+      id, severity: "warning",
+      message: `${what} on this background (${ratio(c)}, needs ${t}:1).`,
+      fix: { [x.token.var]: joint(x, t) ?? fixLightness(x.value, bg.value, t, FIX_MARGIN) },
+    });
+  };
+  const card = (id: string, x: Colour | undefined, t: number, what: string) => {
+    if (!x || !surface) return;
+    const c = contrast(x.value, surface.value);
+    if (c >= t) return;
+    const own = joint(x, t);
+    const adjusted = !own && bg ? surfaceFix() : null;
+    out.push({
+      id, severity: "warning",
+      message: `${what} on cards and panels (${ratio(c)}, needs ${t}:1).` +
+        (adjusted ? " No single colour works on both the page and the cards, so Fix adjusts the card colour." : ""),
+      fix: adjusted
+        ? { [surface.token.var]: adjusted }
+        : { [x.token.var]: own ?? fixLightness(x.value, surface.value, t, FIX_MARGIN) },
+    });
+  };
+
+  page("C1", fg, 4.5, "Body text is hard to read");
+  page("C2", muted, 4.5, "Muted text is hard to read");
+  page("C3", accent, 3, "The accent colour is hard to see");
+  // C4 Text on accent: switch to white or black, whichever contrasts more.
+  if (accentText && accent) {
+    const c = contrast(accentText.value, accent.value);
+    if (c < 4.5) {
+      const best = contrast("#ffffff", accent.value) >= contrast("#000000", accent.value) ? "#ffffff" : "#000000";
+      out.push({
+        id: "C4", severity: "warning",
+        message: `Text on the accent colour is hard to read (${ratio(c)}, needs 4.5:1).`,
+        fix: { [accentText.token.var]: best },
+      });
+    }
+  }
+  card("C5", fg, 4.5, "Body text is hard to read");
+  card("C13", muted, 4.5, "Muted text is hard to read");
+  card("C14", accent, 3, "The accent colour is hard to see");
 }

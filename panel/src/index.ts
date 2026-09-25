@@ -23,10 +23,14 @@ function mount(input: unknown): void {
   }
   const { config, warnings } = result;
   for (const w of warnings) console.warn(`${PREFIX} ${w}`);
-  const style = getComputedStyle(document.documentElement);
-  for (const w of findStaleDefaults(config, (n) => style.getPropertyValue(n))) {
-    console.warn(`${PREFIX} Config out of date: ${w}`);
-  }
+  // Checked a moment after mounting: when a dev server hot-reloads the config and the CSS together,
+  // the new CSS can land slightly after the panel remounts, which isn't a real mismatch.
+  const staleCheck = setTimeout(() => {
+    const style = getComputedStyle(document.documentElement);
+    for (const w of findStaleDefaults(config, (n) => style.getPropertyValue(n))) {
+      console.warn(`${PREFIX} Config out of date: ${w}`);
+    }
+  }, 2000);
 
   // Restore saved versions, reconciled against the current defaults (spec §9).
   const saved = load(config);
@@ -49,7 +53,7 @@ function mount(input: unknown): void {
       persist();
     },
   });
-  const stop = () => { stopOverrides(); stopPersist(); saver.flush(); };
+  const stop = () => { clearTimeout(staleCheck); stopOverrides(); stopPersist(); saver.flush(); };
   mounted = { panel, writer, stop };
 }
 
