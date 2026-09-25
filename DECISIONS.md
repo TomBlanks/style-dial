@@ -145,3 +145,12 @@ Decisions made while building v1, including anywhere the implementation departs 
 | §10.3 | The example's `next.config.ts` sets `agentRules: false`. | Next 16 otherwise writes `AGENTS.md` and `CLAUDE.md` into the project on first `next dev`. |
 | §10.4 | Fonts in the Next example use `next/font/google`, and the font tokens point at the variables it creates (`--font-heading: var(--font-young-serif), Georgia, serif`). | What §10.4 prescribes for Next. It's unaffected by fonts being out of the panel. |
 | §3 | `npm run build` in `panel/` also copies the panel and types into `examples/nextjs-tailwind/app/dev/`. | Examples always run the latest panel. |
+
+## M5.3 build notes: end-to-end tests (2026-09-25)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §12 M5 | Playwright uses the **locally installed Chrome** (`channel: "chrome"`) instead of downloading browsers. The plain-HTML example is served by a tiny dependency-free static server (`e2e/static-server.mjs`) so the clipboard works; it doesn't over `file://`. | Nothing extra to install. The clipboard API needs an http(s) origin. |
+| §12 M5 | Next's production build runs before its dev server in the Playwright `webServer` list. | `next build` wipes `.next`, which the dev server also uses. |
+| §12 M5 | The "updating the config default clears the override" test runs on the plain-HTML example. It serves a modified `index.html` and `tokens.css` with Playwright routing, as if Claude had applied the tweak. Reconciliation itself is the same code in every framework and is unit-tested in `persist.test.ts`. | The inline config makes the change easy to simulate without editing files on disk. |
+| §12 M5 | Each test was checked against deliberately broken versions (absence check pointed at a dev server, wrong copy text) to prove the assertions can fail. | A suite that has only ever passed proves little. |
