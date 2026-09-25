@@ -1,8 +1,15 @@
 # Style Dial
 
+[![CI](https://github.com/TomBlanks/style-dial/actions/workflows/ci.yml/badge.svg)](https://github.com/TomBlanks/style-dial/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Panel size](https://img.shields.io/badge/panel-18%20KB%20gzipped-brightgreen)
+![Dependencies](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
+
 **Stop describing design changes to Claude. Drag them.**
 
 Style Dial is a Claude Code skill and a tiny in-browser panel. Claude builds your site with every design value as a live token, and puts a panel in the corner of the page with sliders, colour pickers, design checks and tailored suggestions. You tune the design by eye, click **Copy changes**, paste the result into Claude Code, and the edits go straight into your source.
+
+**[▶ Try the live demo](https://tomblanks.github.io/style-dial/)**, no install needed.
 
 ![The Style Dial panel open on a website, with sliders for text width and corner radius and colour pickers](docs/images/hero.png)
 
@@ -80,9 +87,9 @@ When Claude builds the site, it also writes 3–5 design ideas specific to it, l
 The skill lives in [`skill/style-dial`](skill/style-dial). Put it in your Claude Code skills folder:
 
 ```sh
-git clone https://github.com/TomBlanks/styledial.git
+git clone https://github.com/TomBlanks/style-dial.git
 mkdir -p ~/.claude/skills
-cp -R styledial/skill/style-dial ~/.claude/skills/
+cp -R style-dial/skill/style-dial ~/.claude/skills/
 ```
 
 (Use `ln -s` instead of `cp -R` if you'd like updates to the clone to apply automatically.)
@@ -118,7 +125,36 @@ Then open the site in development, tweak, copy, paste. When you're happy:
 
 Each works with or without **Tailwind CSS v4**. Tokens go in `@theme static`, so Tailwind utilities like `bg-accent` and `text-h1` stay live.
 
-## Repository layout
+## Under the hood
+
+```mermaid
+flowchart LR
+    A[Claude Code builds the site] --> B[Design tokens<br/>CSS variables in one file]
+    B --> C[Panel in the browser<br/>overrides tokens live]
+    C -->|Copy changes| D[style-tweaks block]
+    D -->|Paste| E[Claude edits only<br/>those token values]
+    E --> B
+```
+
+A few of the engineering decisions behind it. Every trade-off is logged in [DECISIONS.md](DECISIONS.md), against the original [spec](design-tweaker-spec.md).
+
+- **One dependency-free file.** The panel is written in TypeScript and bundled by esbuild into a single IIFE: 51 KB raw, **18 KB gzipped**. The build fails if it goes over a 30 KB gzipped budget.
+- **Isolated both ways.** The panel renders inside Shadow DOM, so the site's CSS can't break the panel and the panel can't leak into the site.
+- **Overrides without touching your markup.** Live values are written to one unlayered `<style>` element. Unlayered rules beat Tailwind v4's layered theme, so utilities like `bg-accent` update instantly and no site element is ever modified.
+- **Contrast fixes that keep your colours.** The WCAG checks work in OKLCH and change only lightness, so a fixed colour keeps its hue. Every fix searches for the smallest lightness change that satisfies all the pairs a colour belongs to, so fixes never undo each other. In a stress test of 5,000 random designs, every one was cleared of colour warnings in five clicks or fewer, and the slowest check run took about 7 ms.
+- **Versions and undo.** Each version (A, B, C) stores a complete set of values with its own undo history, and survives a page refresh. A whole slider drag is a single undo step.
+- **Never shipped to production.** End-to-end tests build the Vite and Next.js examples for production and check that no panel code is in the output.
+- **Tested.** 164 Vitest unit tests cover config validation, colour maths, checks, history and export, and 21 Playwright tests run all three example stacks in dev and production, including an axe accessibility audit. CI also checks that the bundle shipped in the skill matches the source.
+
+## Limitations
+
+- **Claude Code only.** The skill relies on Claude Code editing files in your project.
+- **Copy and paste.** Browsers can't write to your source files, so changes go back through Claude. Applying them directly is on the roadmap.
+- **Tokens, not layouts.** The panel adjusts sizes, spacing, radii and colours. Structural changes still happen in chat.
+- **No font control yet.** Ask Claude for font changes in chat for now.
+
+<details>
+<summary><strong>Repository layout</strong></summary>
 
 ```
 panel/      The panel: TypeScript source, esbuild build, 164 Vitest unit tests
@@ -128,7 +164,10 @@ e2e/        21 Playwright tests across all three examples (dev + production)
 docs/       README images
 ```
 
-## Development
+</details>
+
+<details>
+<summary><strong>Development</strong></summary>
 
 ```sh
 cd panel
@@ -152,6 +191,8 @@ End-to-end tests (uses your installed Chrome; run `npm install` in each example 
 cd e2e && npm install && npm test
 ```
 
+</details>
+
 ## Status and what's next
 
 **v1 is complete.** Read the full [spec here](design-tweaker-spec.md).
@@ -161,3 +202,7 @@ On the roadmap:
 - **Side-by-side compare** of two versions.
 - **Font pairing** in the panel (for now, ask Claude in chat).
 - **More versions**, **inspect mode** and **pinned notes**.
+
+## License
+
+[MIT](LICENSE)

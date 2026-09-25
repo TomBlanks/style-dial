@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  panel:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: panel/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # Fails if the bundle goes over the 30 KB gzipped budget.
+      - run: npm run build
+      # The skill and examples ship the built panel, so it must match the source.
+      - name: Check the committed panel is up to date
+        run: git diff --exit-code -- ../skill ../examples
