@@ -136,15 +136,30 @@ flowchart LR
     E --> B
 ```
 
-A few of the engineering decisions behind it. Every trade-off is logged in [DECISIONS.md](DECISIONS.md), against the original [spec](design-tweaker-spec.md).
+A few of the engineering decisions behind it. Every trade-off is logged in [DECISIONS.md](DECISIONS.md), against the original [spec](design-tweaker-spec.md) (written under the working title Design Tweaker).
 
-- **One dependency-free file.** The panel is written in TypeScript and bundled by esbuild into a single IIFE: 51 KB raw, **18 KB gzipped**. The build fails if it goes over a 30 KB gzipped budget.
+- **One dependency-free file.** The panel is written in TypeScript and bundled by esbuild into a single IIFE: 52 KB raw, **18 KB gzipped**. The build fails if it goes over a 30 KB gzipped budget.
 - **Isolated both ways.** The panel renders inside Shadow DOM, so the site's CSS can't break the panel and the panel can't leak into the site.
 - **Overrides without touching your markup.** Live values are written to one unlayered `<style>` element. Unlayered rules beat Tailwind v4's layered theme, so utilities like `bg-accent` update instantly and no site element is ever modified.
 - **Contrast fixes that keep your colours.** The WCAG checks work in OKLCH and change only lightness, so a fixed colour keeps its hue. Every fix searches for the smallest lightness change that satisfies all the pairs a colour belongs to, so fixes never undo each other. In a stress test of 5,000 random designs, every one was cleared of colour warnings in five clicks or fewer, and the slowest check run took about 7 ms.
 - **Versions and undo.** Each version (A, B, C) stores a complete set of values with its own undo history, and survives a page refresh. A whole slider drag is a single undo step.
 - **Never shipped to production.** End-to-end tests build the Vite and Next.js examples for production and check that no panel code is in the output.
 - **Tested.** 165 Vitest unit tests cover config validation, colour maths, checks, history and export, and 21 Playwright tests run all three example stacks in dev and production, including an axe accessibility audit. CI also checks that the bundle shipped in the skill matches the source.
+
+## Why I built it
+
+I was building my personal website with Claude. I knew exactly how I wanted it to look, but Claude kept getting the spacing and typography slightly wrong, and every correction meant another prompt, another wait, and another result that still wasn't quite right. The real problem was the back-and-forth: it takes many rounds for a designer and Claude to agree on what "a bit more space" means.
+
+Style Dial cuts out that loop. You adjust the design by eye, see it instantly, and hand Claude the exact values to write. It works with any HTML and CSS project instead of locking you into a site builder like Squarespace, so once the design is right you carry on with Claude as a developer normally would. Style Dial just handles the fiddly part.
+
+I built v1 in about 24 hours, working in small checkpoints and logging every decision in [DECISIONS.md](DECISIONS.md).
+
+### What was hard
+
+- **Fixes that fought each other.** Fixing body text against the page could break it against the cards, and fixing that broke the first one again, in an endless loop. I reproduced 56 looping combinations, then rewrote every colour fix to share one search that satisfies all of a colour's pairs at once. Now 5,000 random designs all settle in five clicks or fewer.
+- **Powerful but uncluttered.** The panel needed versions, checks, suggestions and undo, but it had to fit in a corner of the screen and stay easy to use. I removed the title row, moved the change count into the Copy button, and left font controls out of v1 rather than cram them in.
+- **Assumptions that didn't hold.** Testing against real frameworks showed that Tailwind v4 silently drops theme variables no utility uses, which left some sliders doing nothing, and that the recommended Next.js setup shipped the dev-only panel in production builds. Both are fixed and covered by end-to-end tests.
+- **Trying it on real sites.** I ran the skill on four trial builds: a portfolio, a landing page, a business site and a restyle. They exposed gaps the spec had missed, such as captions that were unreadable on coloured cards, which led to two new checks.
 
 ## Limitations
 
@@ -195,7 +210,7 @@ cd e2e && npm install && npm test
 
 ## Status and what's next
 
-**v1 is complete.** Read the full [spec here](design-tweaker-spec.md).
+**v1 is complete.** The original [spec](design-tweaker-spec.md) was written under the working title Design Tweaker.
 
 On the roadmap:
 - **Apply directly to files**, so there's no copy and paste.
