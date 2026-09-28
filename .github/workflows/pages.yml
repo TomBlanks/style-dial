@@ -1,11 +1,11 @@
-# Publishes the plain HTML example as a live demo, so anyone can try the panel
+# Publishes the demo site (Kiteline) as a live demo, so anyone can try the panel
 # without installing Claude Code.
 name: Demo
 
 on:
   push:
     branches: [main]
-    paths: [examples/plain-html/**, .github/workflows/pages.yml]
+    paths: [examples/demo/**, .github/workflows/pages.yml]
   workflow_dispatch:
 
 permissions:
@@ -27,6 +27,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: examples/plain-html
+          path: examples/demo
       - id: deployment
         uses: actions/deploy-pages@v4

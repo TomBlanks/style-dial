@@ -174,7 +174,7 @@ I built v1 in about 24 hours, working in small checkpoints and logging every dec
 ```
 panel/      The panel: TypeScript source, esbuild build, 165 Vitest unit tests
 skill/      The Claude Code skill: SKILL.md, references, and the built panel
-examples/   Plain HTML, React + Vite + Tailwind, and Next.js + Tailwind sites
+examples/   Plain HTML, React + Vite + Tailwind, and Next.js + Tailwind sites, plus the live demo
 e2e/        21 Playwright tests across all three examples (dev + production)
 docs/       README images
 ```
@@ -195,6 +195,7 @@ npm run build       # → dist/tweak-panel.js, copied into the skill and every e
 Run the examples:
 
 ```sh
+open examples/demo/index.html          # the live demo site
 open examples/plain-html/index.html
 cd examples/react-vite-tailwind && npm install && npm run dev
 cd examples/nextjs-tailwind && npm install && npm run dev

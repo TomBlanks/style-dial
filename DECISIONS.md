@@ -197,3 +197,10 @@ Decisions made while building v1, including anywhere the implementation departs 
 | Spec § | Decision | Reason |
 |---|---|---|
 | all | **The product is now called Style Dial** (formerly "Design Tweaker", the spec's working title). Renamed everywhere: panel labels, the skill (`skill/style-dial`, `name: style-dial`), element and ids (`<style-dial-root>`, `#style-dial-overrides`), storage key (`style-dial:v1:<id>`), markers (`style-dial:start/end`), console prefix, and the paste block (` ```style-tweaks ` / "Apply these style tweaks (style-dial v1)"). Unchanged: the original spec file `design-tweaker-spec.md` and the functional names `tweak-panel.js`, `tweak.config.json` and `window.TweakPanel`. Entries above this one have been updated to the new names. | The user decided. It's shorter and more memorable, and matches the repo name. Nothing was released, so renaming now costs nothing. |
+
+## Demo site (2026-09-28)
+
+| Spec § | Decision | Reason |
+|---|---|---|
+| §4 (skill) | **New example `examples/demo` (Kiteline, a made-up planning app) is deliberately off-design.** Its defaults break the skill's "the original passes every check" rule: body text is 14px (C8), muted text is too faint on the page and cards (C2, C13), and lines are 90ch (C6). The headline is also too big, spacing is cramped, corners are sharp and the accent is default blue, none of which is a check. | It's the site for the README video and the live demo, so it needs visible problems to fix with Fix buttons, sliders and suggestions. The other examples still follow the rule. |
+| §3 | The live demo (GitHub Pages) now publishes `examples/demo` instead of `examples/plain-html`. A thin "this is a demo" bar shows only on `github.io`, so local recordings don't include it. `npm run build` copies the panel into `examples/demo/` too. | A clearly flawed page shows what the panel is for faster than an already-polished one. The e2e tests keep using the three original examples. |

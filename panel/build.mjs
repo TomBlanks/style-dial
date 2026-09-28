@@ -11,6 +11,7 @@ const assets = resolve(here, "../skill/style-dial/assets");
 // Every example gets the freshly built panel (the skill's assets are the source of truth).
 const examples = [
   { dir: resolve(here, "../examples/plain-html"), types: false },
+  { dir: resolve(here, "../examples/demo"), types: false },
   { dir: resolve(here, "../examples/react-vite-tailwind/src/dev"), types: true },
   { dir: resolve(here, "../examples/nextjs-tailwind/app/dev"), types: true },
 ];

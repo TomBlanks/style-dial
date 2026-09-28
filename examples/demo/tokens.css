@@ -1,0 +1,26 @@
+/* Design tokens — the one place adjustable design values live (token contract §4).
+   The defaults are deliberately a little off, so the demo has something to fix (see DECISIONS.md). */
+:root {
+  --font-heading: "Inter Tight", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --text-body: 0.875rem;
+  --text-h1: 5.25rem;
+  --text-h2: 2rem;
+  --text-h3: 1.25rem;
+  --text-small: 0.8125rem;
+  --leading-body: 1.5;
+  --leading-heading: 1.2;
+
+  --measure: 90ch;
+  --space-section: 48px;
+  --space-gap: 16px;
+  --radius: 2px;
+
+  --color-fg: #111827;
+  --color-muted: #9ca3af;
+  --color-bg: #ffffff;
+  --color-surface: #f3f4f6;
+  --color-accent: #2563eb;
+  --color-accent-fg: #ffffff;
+}
