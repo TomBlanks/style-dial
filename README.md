@@ -24,7 +24,7 @@ Fine-tuning an AI-built site through chat goes like this:
 > "Can the orange be a bit more… burnt?"  
 > "Actually, go back to what it was two tries ago."
 
-Every round trip means waiting, re-reading a diff and reloading the page. Visual adjustments belong on a slider, not in a prompt.
+Every round trip means guessing which change will make it look better, re-prompting, waiting and reloading the page. Visual adjustments belong on a slider, not in a prompt.
 
 With Style Dial you:
 
@@ -57,7 +57,7 @@ With Style Dial you:
 Sliders and number inputs for type sizes, line heights, text width, section spacing, gaps and corner radius, plus colour pickers with hex input. Changed values get a blue dot and a one-click reset. Every change can be undone (⌘Z / ⌘⇧Z), and a whole slider drag is a single undo step.
 
 ### Versions: try A, B and C and flick between them
-Hit **+** to branch a new version from the one you're on. Flick between **Original · A · B · C** instantly (⌥⇧1–4), with nothing reloaded. Each version keeps its own undo history, and all of them survive a page refresh. Here's the same page as the original draft and as Version A, without touching the code:
+Hit **+** to branch a new version from the one you're on. Flick between **Original · A · B · C** instantly (⌥⇧1–4), with nothing reloaded. Each version keeps its own undo history, and all of them survive a page refresh. Here's the same page in two different styles, on two tabs (Original and A), without touching the code:
 
 <table>
 <tr>
@@ -68,10 +68,10 @@ Hit **+** to branch a new version from the one you're on. Flick between **Origin
 </table>
 
 ### Design checks with one-click fixes
-Fourteen rules run as you tweak: text contrast on the page and on cards (WCAG), accent visibility, text on buttons, line length, body text size, line height and heading hierarchy. Most have a **Fix** button that makes the smallest change that solves the problem. Contrast fixes keep the colour's hue and change only its lightness, and fixes never fight each other. A 5,000-design stress test clears every colour warning in five clicks or fewer.
+Fourteen rules run as you tweak the design: text contrast on the page and on cards, accent visibility, text on buttons, line length, body text size, line height and heading hierarchy. Most have a **Fix** button that makes the smallest change that solves the problem. Contrast fixes keep the colour's hue and change only its lightness, and fixes never fight each other.
 
 ### Suggestions written for *your* site
-When Claude builds the site, it also writes 3–5 design ideas specific to it, like "A brighter, fresher green: the muted plum reads as heavy next to the grey cards". **Preview** one on the live page, then **Apply** or **Cancel**. Suggestions you've already gone past step aside. Nothing is final until you copy.
+When Claude builds the site, it also writes 3–5 design ideas specific to it, like "A brighter, fresher green: the muted plum reads as heavy next to the grey cards". **Preview** one on the live page, then **Apply** or **Cancel**. Nothing is final until you copy.
 
 <table>
 <tr>
@@ -125,34 +125,11 @@ Then open the site in development, tweak, copy, paste. When you're happy:
 
 Each works with or without **Tailwind CSS v4**. Tokens go in `@theme static`, so Tailwind utilities like `bg-accent` and `text-h1` stay live.
 
-## Under the hood
-
-```mermaid
-flowchart LR
-    A[Claude Code builds the site] --> B[Design tokens<br/>CSS variables in one file]
-    B --> C[Panel in the browser<br/>overrides tokens live]
-    C -->|Copy changes| D[style-tweaks block]
-    D -->|Paste| E[Claude edits only<br/>those token values]
-    E --> B
-```
-
-A few of the engineering decisions behind it. Every trade-off is logged in [DECISIONS.md](DECISIONS.md), against the original [spec](design-tweaker-spec.md) (written under the working title Design Tweaker).
-
-- **One dependency-free file.** The panel is written in TypeScript and bundled by esbuild into a single IIFE: 52 KB raw, **18 KB gzipped**. The build fails if it goes over a 30 KB gzipped budget.
-- **Isolated both ways.** The panel renders inside Shadow DOM, so the site's CSS can't break the panel and the panel can't leak into the site.
-- **Overrides without touching your markup.** Live values are written to one unlayered `<style>` element. Unlayered rules beat Tailwind v4's layered theme, so utilities like `bg-accent` update instantly and no site element is ever modified.
-- **Contrast fixes that keep your colours.** The WCAG checks work in OKLCH and change only lightness, so a fixed colour keeps its hue. Every fix searches for the smallest lightness change that satisfies all the pairs a colour belongs to, so fixes never undo each other. In a stress test of 5,000 random designs, every one was cleared of colour warnings in five clicks or fewer, and the slowest check run took about 7 ms.
-- **Versions and undo.** Each version (A, B, C) stores a complete set of values with its own undo history, and survives a page refresh. A whole slider drag is a single undo step.
-- **Never shipped to production.** End-to-end tests build the Vite and Next.js examples for production and check that no panel code is in the output.
-- **Tested.** 165 Vitest unit tests cover config validation, colour maths, checks, history and export, and 21 Playwright tests run all three example stacks in dev and production, including an axe accessibility audit. CI also checks that the bundle shipped in the skill matches the source.
-
 ## Why I built it
 
 I was building my personal website with Claude. I knew exactly how I wanted it to look, but Claude kept getting the spacing and typography slightly wrong, and every correction meant another prompt, another wait, and another result that still wasn't quite right. The real problem was the back-and-forth: it takes many rounds for a designer and Claude to agree on what "a bit more space" means.
 
 Style Dial cuts out that loop. You adjust the design by eye, see it instantly, and hand Claude the exact values to write. It works with any HTML and CSS project instead of locking you into a site builder like Squarespace, so once the design is right you carry on with Claude as a developer normally would. Style Dial just handles the fiddly part.
-
-I built v1 in about 24 hours, working in small checkpoints and logging every decision in [DECISIONS.md](DECISIONS.md).
 
 ### What was hard
 
@@ -181,37 +158,9 @@ docs/       README images
 
 </details>
 
-<details>
-<summary><strong>Development</strong></summary>
-
-```sh
-cd panel
-npm install
-npm test            # unit tests
-npm run typecheck
-npm run build       # → dist/tweak-panel.js, copied into the skill and every example
-```
-
-Run the examples:
-
-```sh
-open examples/demo/index.html          # the live demo site
-open examples/plain-html/index.html
-cd examples/react-vite-tailwind && npm install && npm run dev
-cd examples/nextjs-tailwind && npm install && npm run dev
-```
-
-End-to-end tests (uses your installed Chrome; run `npm install` in each example first):
-
-```sh
-cd e2e && npm install && npm test
-```
-
-</details>
-
 ## Status and what's next
 
-**v1 is complete.** The original [spec](design-tweaker-spec.md) was written under the working title Design Tweaker.
+**v1 is complete.**
 
 On the roadmap:
 - **Apply directly to files**, so there's no copy and paste.
