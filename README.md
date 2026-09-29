@@ -57,29 +57,29 @@ With Style Dial you:
 Sliders and number inputs for type sizes, line heights, text width, section spacing, gaps and corner radius, plus colour pickers with hex input. Changed values get a blue dot and a one-click reset. Every change can be undone (⌘Z / ⌘⇧Z), and a whole slider drag is a single undo step.
 
 ### Versions: try A, B and C and flick between them
-Hit **+** to branch a new version from the one you're on. Flick between **Original · A · B · C** instantly (⌥⇧1–4), with nothing reloaded. Each version keeps its own undo history, and all of them survive a page refresh. Here's the same page as the original and as a bolder Version B, without touching the code:
+Hit **+** to branch a new version from the one you're on. Flick between **Original · A · B · C** instantly (⌥⇧1–4), with nothing reloaded. Each version keeps its own undo history, and all of them survive a page refresh. Here's the same page as the original draft and as Version A, without touching the code:
 
 <table>
 <tr>
-<td><img src="docs/images/version-original.png" alt="The original design: light cream background with dark serif headings"></td>
-<td><img src="docs/images/version-b.png" alt="Version B: the same page with a dark background, light text and a warm orange accent"></td>
+<td><img src="docs/images/version-original.jpg" alt="The original design: a white page with an oversized headline, faint grey text and a plum accent, with the panel showing the Original tab"></td>
+<td><img src="docs/images/version-a.jpg" alt="Version A: the same page with a dark navy background, a smaller headline, larger body text and a yellow accent"></td>
 </tr>
-<tr><td align="center"><sub>Original</sub></td><td align="center"><sub>Version B</sub></td></tr>
+<tr><td align="center"><sub>Original</sub></td><td align="center"><sub>Version A</sub></td></tr>
 </table>
 
 ### Design checks with one-click fixes
 Fourteen rules run as you tweak: text contrast on the page and on cards (WCAG), accent visibility, text on buttons, line length, body text size, line height and heading hierarchy. Most have a **Fix** button that makes the smallest change that solves the problem. Contrast fixes keep the colour's hue and change only its lightness, and fixes never fight each other. A 5,000-design stress test clears every colour warning in five clicks or fewer.
 
 ### Suggestions written for *your* site
-When Claude builds the site, it also writes 3–5 design ideas specific to it, like "Deeper, kiln-fired accent: a darker terracotta echoes the iron-red glaze on the bud vases". **Preview** one on the live page, then **Apply** or **Cancel**. Suggestions you've already gone past step aside. Nothing is final until you copy.
+When Claude builds the site, it also writes 3–5 design ideas specific to it, like "A brighter, fresher green: the muted plum reads as heavy next to the grey cards". **Preview** one on the live page, then **Apply** or **Cancel**. Suggestions you've already gone past step aside. Nothing is final until you copy.
 
 <table>
 <tr>
-<td><img src="docs/images/checks.png" alt="The Checks tab listing contrast and line-length warnings, each with a Fix button"></td>
-<td><img src="docs/images/suggestions.png" alt="The Suggestions tab with one suggestion applied and another being previewed with Cancel and Apply buttons"></td>
-<td><img src="docs/images/dark.png" alt="The panel in dark mode showing versions A and B and typography sliders"></td>
+<td><img src="docs/images/checks.jpg" alt="The Checks tab listing three warnings (text on the accent, small body text and equal heading sizes), each with a Fix button"></td>
+<td><img src="docs/images/suggestions.jpg" alt="The Suggestions tab with two suggestions written for the site, each with a Preview button"></td>
+<td><img src="docs/images/controls.jpg" alt="The Controls tab with typography sliders, two of them changed and marked with a blue dot and a reset arrow"></td>
 </tr>
-<tr><td align="center"><sub>Checks</sub></td><td align="center"><sub>Suggestions</sub></td><td align="center"><sub>Dark mode</sub></td></tr>
+<tr><td align="center"><sub>Checks</sub></td><td align="center"><sub>Suggestions</sub></td><td align="center"><sub>Controls</sub></td></tr>
 </table>
 
 ## Install
