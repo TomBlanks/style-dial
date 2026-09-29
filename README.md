@@ -75,11 +75,11 @@ When Claude builds the site, it also writes 3–5 design ideas specific to it, l
 
 <table>
 <tr>
-<td><img src="docs/images/checks.jpg" alt="The Checks tab listing three warnings (text on the accent, small body text and equal heading sizes), each with a Fix button"></td>
-<td><img src="docs/images/suggestions.jpg" alt="The Suggestions tab with two suggestions written for the site, each with a Preview button"></td>
-<td><img src="docs/images/controls.jpg" alt="The Controls tab with typography sliders, two of them changed and marked with a blue dot and a reset arrow"></td>
+<td width="33%"><img src="docs/images/controls.jpg" width="100%" alt="The Controls tab with typography sliders, two of them changed and marked with a blue dot and a reset arrow"></td>
+<td width="33%"><img src="docs/images/checks.jpg" width="100%" alt="The Checks tab listing three warnings (text on the accent, small body text and equal heading sizes), each with a Fix button"></td>
+<td width="33%"><img src="docs/images/suggestions.jpg" width="100%" alt="The Suggestions tab with two suggestions written for the site, each with a Preview button"></td>
 </tr>
-<tr><td align="center"><sub>Checks</sub></td><td align="center"><sub>Suggestions</sub></td><td align="center"><sub>Controls</sub></td></tr>
+<tr><td align="center"><sub>Controls</sub></td><td align="center"><sub>Checks</sub></td><td align="center"><sub>Suggestions</sub></td></tr>
 </table>
 
 ## Install
