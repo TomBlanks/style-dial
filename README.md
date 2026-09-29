@@ -11,7 +11,7 @@ Style Dial is a Claude Code skill and a tiny in-browser panel. Claude builds you
 
 **[▶ Try the live demo](https://tomblanks.github.io/style-dial/)**, no install needed.
 
-https://github.com/user-attachments/assets/a1985f93-b24c-40f3-806f-1cffffa131d9
+https://github.com/user-attachments/assets/e4bc497f-1424-4560-87b0-5d33f856382d
 
 ---
 
